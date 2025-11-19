@@ -4,10 +4,8 @@
 
   services.getty.autologinUser = "root";
   
-  # services.displayManager.autoLogin.enable = true;
-  # services.displayManager.autoLogin.user = "root";
-  
-  users.users.root.initialPassword = "";
+  # Set a simple password for root: "root"
+  users.users.root.password = "root";
   
   # Virtual Machine configuration
   virtualisation = {

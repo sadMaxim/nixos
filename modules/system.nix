@@ -21,5 +21,9 @@
   ];
 
   services.xserver.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
+  services.xserver.displayManager.autoLogin.enable = true;
+  services.xserver.displayManager.autoLogin.user = "root";
+  services.xserver.desktopManager.xfce.enable = true;
 
 }
