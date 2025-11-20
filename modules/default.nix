@@ -1,10 +1,10 @@
 { inputs, self, ... }:
-let 
-  modules = [
-   ./system.nix
-  ];
-in
 {
+  
+  flake.nixosModules.default = { config, ... }: {
+     imports = [./system.nix ./home.nix];
+  };
+
   
   flake.nixosConfigurations = {
     nixos = inputs.nixpkgs.lib.nixosSystem {
@@ -21,7 +21,7 @@ in
   perSystem = { system, pkgs, self', inputs', ... }:
     {
       packages.vm = (self.nixosConfigurations.nixos.extendModules {
-        modules = [ (import ./vm.nix) ];
+        modules = [ ./vm.nix self.nixosModules.default];
       }).config.system.build.vm;
     };
 }

@@ -1,6 +1,9 @@
 # or local testing virtual machines
 { lib, modulesPath, ... }: {
-  imports = [ "${modulesPath}/virtualisation/qemu-vm.nix" ];
+  imports = [ 
+  "${modulesPath}/virtualisation/qemu-vm.nix"
+
+  ];
 
   services.getty.autologinUser = "root";
   
