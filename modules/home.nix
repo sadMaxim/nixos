@@ -6,18 +6,17 @@
   home-manager.useUserPackages = true;
   
   home-manager.users.maxim = { pkgs, ... }: {
+
+   nixpkgs.config.allowUnfree = true;
+   home.stateVersion = "25.05";
+
    imports = [ 
      ./hyprland.nix
+     ./kitty.nix
      nixvim.homeManagerModules.nixvim 
    ];
    
-   nixpkgs.config.allowUnfree = true;
-   nixpkgs.config.allowUnfreePredicate = (_:true);
    
-   home.packages = with pkgs; [
-     wofi
-   ];
-   home.stateVersion = "25.05";
 
     # programs 
     programs = {
@@ -29,9 +28,11 @@
        settings.user.name = "sadMaxim";
       };
 
-      # nixvim = (import ./nixvim {inherit pkgs;}) // {
-      #   enable = true;
-      # };
+      nixvim = (import ./nixvim {inherit pkgs;}) // {
+        defaultEditor = true;
+        nixpkgs.useGlobalPackages = true;
+        enable = true;
+      };
 
     };
     

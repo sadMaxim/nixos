@@ -1,7 +1,7 @@
 { pkgs, ... }:
 {
 
-    home.packages = with pkgs; [ wofi ];
+    home.packages = with pkgs; [wofi google-chrome];
     
     ##### wofi 
     xdg.configFile."wofi/config".text = ''
@@ -71,6 +71,8 @@
         color: #33ccff;
       }
     '';
+
+    ### chrome config
 
 
     wayland.windowManager.hyprland = {
