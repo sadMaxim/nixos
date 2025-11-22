@@ -1,9 +1,9 @@
 { inputs, self, ... }:
 {
   
-  flake.nixosModules.default = { config, ... }: {
-     imports = [./system.nix ./home.nix];
-  };
+  # flake.nixosModules.default = { config, ... }: {
+  #    imports = [./system.nix ./home.nix];
+  # };
 
   
   flake.nixosConfigurations = {
@@ -12,7 +12,7 @@
       specialArgs = inputs; 
       modules = [
         { nixpkgs.config.allowUnfree = true; }
-        ./system.nix
+        ../configuration.nix
         ./home.nix
       ];
     };

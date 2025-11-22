@@ -75,6 +75,15 @@
     ### chrome config
 
 
+    ### wallpaper
+   services.hyprpaper = {
+    enable = true;
+    settings = {
+      preload = [ "${../beautifulmountainscape.jpg}" ];
+      wallpaper = [ "DP-1,${../beautifulmountainscape.jpg}" ];
+      };
+    };
+
     wayland.windowManager.hyprland = {
       enable = true;
       settings = {

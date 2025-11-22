@@ -9,10 +9,16 @@
 
    nixpkgs.config.allowUnfree = true;
    home.stateVersion = "25.05";
+   home.packages = with pkgs; [
+     windsurf
+     unzip
+     ripgrep
+   ];
 
    imports = [ 
      ./hyprland.nix
      ./kitty.nix
+     ./waybar
      nixvim.homeManagerModules.nixvim 
    ];
    
