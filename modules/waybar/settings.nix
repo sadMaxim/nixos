@@ -37,6 +37,7 @@ in
       "group/expand-2"
       "memory"
       "cpu"
+      "temperature"
       "clock"
       "custom/notification"
       "custom/padd"
@@ -119,17 +120,25 @@ in
       separate-outputs = true;
     };
     cpu = {
-      interval = 1;
-      rotate = 270;
-      format = "{icon}";
-      format-icons = [ "󰝦" "󰪞" "󰪟" "󰪠" "󰪡" "󰪢" "󰪣" "󰪤" "󰪥" ];
+      interval = 2;
+      format = " {usage}%";
+      tooltip = true;
+      tooltip-format = "CPU: {usage}%\nAvg Frequency: {avg_frequency}GHz";
     };
     memory = {
-      interval = 1;
-      rotate = 270;
-      format = "{icon}";
-      format-icons = [ "󰝦" "󰪞" "󰪟" "󰪠" "󰪡" "󰪢" "󰪣" "󰪤" "󰪥" ];
-      max-length = 10;
+      interval = 2;
+      format = " {percentage}%";
+      tooltip = true;
+      tooltip-format = "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)";
+    };
+    temperature = {
+      thermal-zone = 2;
+      hwmon-path = "/sys/class/hwmon/hwmon2/temp1_input";
+      critical-threshold = 80;
+      format = "{icon} {temperatureC}°C";
+      format-critical = "{icon} {temperatureC}°C";
+      format-icons = [ "" "" "" "" "" ];
+      tooltip = true;
     };
     clock = {
       format = "{:%I:%M %p}";

@@ -2,7 +2,7 @@
 let
   custom = {
     font = "Maple Mono";
-    font_size = "15px";
+    font_size = "13px";
     font_weight = "bold";
   };
 in
@@ -22,10 +22,10 @@ in
     .modules-center,
     .modules-right {
       background: #0F0F17;
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       margin: 0px 5px;
-      padding: 0px 10px;
+      padding: 2px 8px;
     }
 
     tooltip {
@@ -44,11 +44,11 @@ in
     #workspaces button {
       background: transparent;
       color: #6B7280;
-      font-size: 18px;
+      font-size: 14px;
       border: none;
       border-radius: 50%;
-      padding: 2px 8px;
-      margin: 0px 2px;
+      padding: 0px 6px;
+      margin: 0px 1px;
       transition: all 0.3s ease;
     }
 
@@ -120,15 +120,23 @@ in
     }
 
     #cpu {
-      font-weight: normal;
-      font-size: 22px;
       color: #915CAF;
+      padding: 0px 8px;
     }
 
     #memory {
-      font-weight: normal;
-      font-size: 22px;
       color: #E4C9AF;
+      padding: 0px 8px;
+    }
+
+    #temperature {
+      color: #FF9E64;
+      padding: 0px 8px;
+    }
+
+    #temperature.critical {
+      color: #FF6B6B;
+      font-weight: bold;
     }
 
     #mpris {
