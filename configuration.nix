@@ -89,6 +89,7 @@
     #  thunderbird
     git
     vscode
+    htop
     ];
   };
 

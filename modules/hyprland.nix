@@ -14,7 +14,6 @@ in
 {
 
     home.packages = with pkgs; [wofi
-    google-chrome 
     toggleEdp
     wev
     ];
@@ -89,6 +88,13 @@ in
     '';
 
     ### chrome config
+    programs.google-chrome = {
+      enable = true;
+      commandLineArgs = [
+          "--force-device-scale-factor=1.8"
+      ];
+    };
+
 
 
     ### wallpaper
