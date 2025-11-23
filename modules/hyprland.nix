@@ -115,7 +115,7 @@ in
         # Monitor configuration
         monitor = [
           ",preferred,auto,1"          
-          "eDP-1,preferred,auto,1"
+          "eDP-1,disable"
         ];
         
         # i3-style keybindings
