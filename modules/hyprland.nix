@@ -121,6 +121,9 @@ in
         
         # i3-style keybindings
         bind = [
+          # Lock
+          "$mod, BackSpace, exec, hyprlock"
+
           # Launch apps
           "$mod, Return, exec, kitty"
           "$mod, D, exec, wofi --show drun"

@@ -18,6 +18,7 @@
      networkmanagerapplet
      # udiskie
      kdePackages.dolphin
+     hyprlock
    ];
    
 
