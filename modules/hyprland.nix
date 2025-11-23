@@ -205,7 +205,7 @@ in
         };
         
         # Autostart
-        exec-once = [ "waybar" ];
+        exec-once = [ ];
       };
     };
 }

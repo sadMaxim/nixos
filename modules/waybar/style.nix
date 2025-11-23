@@ -2,106 +2,222 @@
 let
   custom = {
     font = "Maple Mono";
-    font_size = "18px";
+    font_size = "15px";
     font_weight = "bold";
-    text_color = "#FBF1C7";
-    background_0 = "#1D2021";
-    background_1 = "#282828";
-    border_color = "#A89984";
-    red = "#CC241D";
-    green = "#98971A";
-    yellow = "#FABD2F";
-    blue = "#458588";
-    magenta = "#B16286";
-    cyan = "#689D6A";
-    orange = "#D65D0E";
-    orange_bright = "#FE8019";
-    opacity = "1";
-    indicator_height = "2px";
   };
 in
 {
   programs.waybar.style = with custom; ''
     * {
-      border: none;
-      border-radius: 0px;
-      padding: 0;
-      margin: 0;
       font-family: ${font};
       font-weight: ${font_weight};
-      opacity: ${opacity};
       font-size: ${font_size};
     }
 
     window#waybar {
-      background: ${background_1};
-      border-top: 1px solid ${border_color};
+      background: transparent;
+    }
+    
+    .modules-left,
+    .modules-center,
+    .modules-right {
+      background: #0F0F17;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin: 0px 5px;
+      padding: 0px 10px;
     }
 
     tooltip {
-      background: ${background_1};
-      border: 1px solid ${border_color};
-    }
-    tooltip label {
-      margin: 5px;
-      color: ${text_color};
+      background: #171717;
+      color: #A1BDCE;
+      font-size: 13px;
+      border-radius: 7px;
+      border: 2px solid #101a24;
     }
 
     #workspaces {
-      padding-left: 15px;
+      background: transparent;
+      padding: 0px 5px;
     }
+
     #workspaces button {
-      color: ${yellow};
-      padding-left:  5px;
-      padding-right: 5px;
-      margin-right: 10px;
+      background: transparent;
+      color: #6B7280;
+      font-size: 18px;
+      border: none;
+      border-radius: 50%;
+      padding: 2px 8px;
+      margin: 0px 2px;
+      transition: all 0.3s ease;
     }
-    #workspaces button.empty {
-      color: ${text_color};
-    }
+
     #workspaces button.active {
-      color: ${orange_bright};
+      color: #A1BDCE;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    #workspaces button.urgent {
+      color: #FF6B6B;
+    }
+
+    #workspaces button:hover {
+      background: rgba(114, 215, 146, 0.2);
+      color: #72D792;
+      transition: all 0.3s ease;
+    }
+
+    #custom-spacer {
+      opacity: 0.0;
+    }
+
+    #custom-smallspacer {
+      opacity: 0.0;
+    }
+
+    #custom-menu {
+      color: #E8EDF0;
+      background: rgba(23, 23, 23, 0.0);
+      margin: 0px 0px 0px 0px;
+      padding-left: 1px;
+      padding-right: 1px;
+      opacity: 0.1;
+    }
+
+    #backlight {
+      color: #2096C0;
+      background: rgba(23, 23, 23, 0.0);
+      font-weight: normal;
+      font-size: 19px;
+      margin: 1px 0px 0px 0px;
+      padding-left: 0px;
+      padding-right: 2px;
     }
 
     #clock {
-      color: ${text_color};
+      color: #A1BDCE;
+      font-size: 15px;
+      font-weight: 900;
+      font-family: ${font};
+      background: rgba(23, 23, 23, 0.0);
+      opacity: 1;
+      margin: 3px 0px 0px 0px;
+      padding-left: 10px;
+      padding-right: 10px;
+      border: none;
+    }
+
+    #pulseaudio {
+      font-weight: normal;
+      font-size: 18px;
+      color: #6F8FDB;
+      background: rgba(22, 19, 32, 0.0);
+      opacity: 1;
+      margin: 0px 0px 0px 0px;
+      padding-left: 3px;
+      padding-right: 3px;
+    }
+
+    #cpu {
+      font-weight: normal;
+      font-size: 22px;
+      color: #915CAF;
+    }
+
+    #memory {
+      font-weight: normal;
+      font-size: 22px;
+      color: #E4C9AF;
+    }
+
+    #mpris {
+      color: white;
+      animation: blink 3s linear infinite alternate;
+    }
+
+    @keyframes blink {
+      to {
+        color: #4a4a4a;
+      }
+    }
+
+    #network {
+      color: #A1BDCE;
+      font-weight: normal;
+      font-size: 19px;
+      padding-right: 0px;
+      padding-left: 4px;
+    }
+
+    #window {
+      color: #A1BDCE;
+      font-family: ${font};
+    }
+
+    #custom-notification {
+      font-family: ${font};
+      font-size: 17px;
+      color: #A1BDCE;
+      margin: 2px 0px 0px 0px;
+    }
+
+    #pulseaudio-slider slider {
+      background: #A1BDCE;
+      background-color: transparent;
+      box-shadow: none;
+      margin-right: 7px;
+    }
+
+    #pulseaudio-slider trough {
+      margin-top: -3px;
+      min-width: 90px;
+      min-height: 10px;
+      margin-bottom: -4px;
+      border-radius: 8px;
+      background: #343434;
+    }
+
+    #pulseaudio-slider highlight {
+      border-radius: 8px;
+      background-color: #2096C0;
+    }
+
+    #backlight-slider slider {
+      background: #A1BDCE;
+      background-color: transparent;
+      box-shadow: none;
+      margin-right: 7px;
+    }
+
+    #backlight-slider trough {
+      margin-top: -3px;
+      min-width: 90px;
+      min-height: 10px;
+      margin-bottom: -4px;
+      border-radius: 8px;
+      background: #343434;
+    }
+
+    #backlight-slider highlight {
+      border-radius: 8px;
+      background-color: #2096C0;
     }
 
     #tray {
-      margin-left: 10px;
-      color: ${text_color};
-    }
-    #tray menu {
-      background: ${background_1};
-      border: 1px solid ${border_color};
-      padding: 8px;
-    }
-    #tray menuitem {
       padding: 1px;
     }
 
-    #pulseaudio, #network, #cpu, #memory, #disk, #battery, #language, #custom-notification, #custom-power-menu {
-      padding-left: 5px;
-      padding-right: 5px;
-      margin-right: 10px;
-      color: ${text_color};
+    #custom-l_end {
+      border-radius: 7px 0px 0px 7px;
+      margin-left: 1px;
+      padding-left: 3px;
     }
 
-    #pulseaudio, #language, #custom-notification {
-      margin-left: 15px;
-    }
-
-    #custom-power-menu {
-      padding-right: 2px;
-      margin-right: 5px;
-    }
-
-    #custom-launcher {
-      font-size: 20px;
-      color: ${text_color};
-      font-weight: bold;
-      margin-left: 15px;
-      padding-right: 10px;
+    #custom-r_end {
+      border-radius: 0px 7px 7px 0px;
+      margin-right: 1px;
+      padding-right: 3px;
     }
   '';
 }

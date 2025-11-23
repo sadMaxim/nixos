@@ -2,181 +2,245 @@
 let
   custom = {
     font = "Maple Mono";
-    font_size = "18px";
+    font_size = "15px";
     font_weight = "bold";
-    text_color = "#FBF1C7";
-    background_0 = "#1D2021";
-    background_1 = "#282828";
-    border_color = "#928374";
-    red = "#CC241D";
-    green = "#98971A";
-    yellow = "#FABD2F";
-    blue = "#458588";
-    magenta = "#B16286";
-    cyan = "#689D6A";
-    orange = "#D65D0E";
-    opacity = "1";
-    indicator_height = "2px";
   };
 in
 {
   programs.waybar.settings.mainBar = with custom; {
-    position = "bottom";
     layer = "top";
-    height = 28;
+    position = "bottom";
+    margin-left = 10;
+    margin-right = 10;
     margin-top = 0;
-    margin-bottom = 0;
-    margin-left = 0;
-    margin-right = 0;
+    margin-bottom = 7;
+    exclusive = true;
+    passthrough = false;
+    gtk-layer-shell = true;
+    reload_style_on_change = true;
+    
     modules-left = [
-      "custom/launcher"
+      "custom/smallspacer"
       "hyprland/workspaces"
-      "tray"
+      "custom/spacer"
+      "mpris"
     ];
-    modules-center = [ "clock" ];
+    modules-center = [
+      "hyprland/window"
+    ];
     modules-right = [
-      "cpu"
-      "memory"
-      "disk"
-      "pulseaudio"
+      "custom/padd"
+      "custom/l_end"
+      "group/expand"
       "network"
-      "battery"
-      "hyprland/language"
+      "group/expand-3"
+      "group/expand-2"
+      "memory"
+      "cpu"
+      "clock"
       "custom/notification"
-      "custom/power-menu"
+      "custom/padd"
     ];
-    clock = {
-      calendar = {
-        format = {
-          today = "<span color='#98971A'><b>{}</b></span>";
-        };
+    "custom/smallspacer" = {
+      format = " ";
+    };
+    "custom/spacer" = {
+      format = "|";
+    };
+    "custom/padd" = {
+      format = "  ";
+      interval = "once";
+      tooltip = false;
+    };
+    "custom/l_end" = {
+      format = " ";
+      interval = "once";
+      tooltip = false;
+    };
+    "custom/r_end" = {
+      format = " ";
+      interval = "once";
+      tooltip = false;
+    };
+    "group/expand" = {
+      orientation = "horizontal";
+      drawer = {
+        transition-duration = 600;
+        children-class = "not-power";
+        transition-to-left = true;
       };
-      format = "󰥔 {:%H:%M}";
-      tooltip = "true";
-      tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-      format-alt = "󰃭 {:%d/%m}";
+      modules = [
+        "custom/menu"
+        "custom/spacer"
+        "tray"
+      ];
     };
-    "hyprland/workspaces" = {
-      active-only = false;
-      disable-scroll = true;
-      format = "{icon}";
-      on-click = "activate";
-      format-icons = {
-        "1" = "1";
-        "2" = "2";
-        "3" = "3";
-        "4" = "4";
-        "5" = "5";
-        "6" = "6";
-        sort-by-number = true;
-      };
-      persistent-workspaces = {
-        "1" = [ ];
-        "2" = [ ];
-        "3" = [ ];
-        "4" = [ ];
-        "5" = [ ];
-      };
-    };
-    cpu = {
-      format = "<span foreground='${green}'>󰻠</span> {usage}%";
-      format-alt = "<span foreground='${green}'>󰻠</span> {avg_frequency} GHz";
-      interval = 2;
-      on-click-right = "hyprctl dispatch exec '[float; center; size 950 650] kitty --override font_size=14 --title float_kitty btop'";
-    };
-    memory = {
-      format = "<span foreground='${cyan}'>󰍛</span> {}%";
-      format-alt = "<span foreground='${cyan}'>󰍛</span> {used} GiB";
-      interval = 2;
-      on-click-right = "hyprctl dispatch exec '[float; center; size 950 650] kitty --override font_size=14 --title float_kitty btop'";
-    };
-    disk = {
-      format = "<span foreground='${orange}'>󰋊</span> {percentage_used}%";
-      interval = 60;
-      on-click-right = "hyprctl dispatch exec '[float; center; size 950 650] kitty --override font_size=14 --title float_kitty btop'";
-    };
-    network = {
-      format-wifi = "<span foreground='${magenta}'>󰖩</span> {signalStrength}%";
-      format-ethernet = "<span foreground='${magenta}'>󰈀</span>";
-      tooltip-format = "Connected to {essid} {ifname} via {gwaddr}";
-      format-linked = "{ifname} (No IP)";
-      format-disconnected = "<span foreground='${magenta}'>󰖪</span>";
+    "custom/menu" = {
+      format = "󰅃";
+      rotate = 90;
     };
     tray = {
-      icon-size = 20;
-      spacing = 8;
+      icon-size = 16;
+      rotate = 0;
+      spacing = 3;
+    };
+    "hyprland/workspaces" = {
+      format = "{icon}";
+      all-outputs = true;
+      active-only = false;
+      format-icons = {
+        default = "○";
+        active = "●";
+        urgent = "";
+      };
+      persistent-workspaces = {
+        "1" = [];
+        "2" = [];
+        "3" = [];
+        "4" = [];
+        "5" = [];
+      };
+    };
+    mpris = {
+      format = "{player_icon} {dynamic}";
+      format-paused = "<span color='grey'>{status_icon} {dynamic}</span>";
+      max-length = 50;
+      player-icons = {
+        default = "⏸";
+        mpv = "🎵";
+      };
+      status-icons = {
+        paused = "▶";
+      };
+    };
+    "hyprland/window" = {
+      format = "{class}: {title}";
+      max-length = 60;
+      separate-outputs = true;
+    };
+    cpu = {
+      interval = 1;
+      rotate = 270;
+      format = "{icon}";
+      format-icons = [ "󰝦" "󰪞" "󰪟" "󰪠" "󰪡" "󰪢" "󰪣" "󰪤" "󰪥" ];
+    };
+    memory = {
+      interval = 1;
+      rotate = 270;
+      format = "{icon}";
+      format-icons = [ "󰝦" "󰪞" "󰪟" "󰪠" "󰪡" "󰪢" "󰪣" "󰪤" "󰪥" ];
+      max-length = 10;
+    };
+    clock = {
+      format = "{:%I:%M %p}";
+      rotate = 0;
+      tooltip-format = "<tt>{calendar}</tt>";
+      calendar = {
+        mode = "month";
+        mode-mon-col = 3;
+        on-scroll = 1;
+        on-click-right = "mode";
+        format = {
+          months = "<span color='#ffead3'><b>{}</b></span>";
+          weekdays = "<span color='#ffcc66'><b>{}</b></span>";
+          today = "<span color='#ff6699'><b>{}</b></span>";
+        };
+      };
+    };
+    network = {
+      tooltip = true;
+      format-wifi = "{icon} ";
+      format-icons = [ "󰤟" "󰤢" "󰤥" ];
+      rotate = 0;
+      format-ethernet = "󰈀 ";
+      tooltip-format = "Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({signalStrength}%)</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>\nIP: <b>{ipaddr}/{cidr}</b>\nGateway: <b>{gwaddr}</b>\nNetmask: <b>{netmask}</b>";
+      format-linked = "󰈀 {ifname} (No IP)";
+      format-disconnected = " ";
+      tooltip-format-disconnected = "Disconnected";
+      interval = 2;
+    };
+    "group/expand-2" = {
+      orientation = "horizontal";
+      drawer = {
+        transition-duration = 600;
+        children-class = "not-power";
+        transition-to-left = true;
+        click-to-reveal = true;
+      };
+      modules = [
+        "backlight"
+        "backlight/slider"
+      ];
+    };
+    backlight = {
+      device = "intel_backlight";
+      rotate = 0;
+      format = "{icon}";
+      format-icons = [ "󰃞" "󰃝" "󰃟" "󰃠" ];
+      scroll-step = 1;
+      min-length = 2;
+    };
+    "backlight/slider" = {
+      min = 5;
+      max = 100;
+      rotate = 0;
+      device = "intel_backlight";
+      scroll-step = 1;
+    };
+    "group/expand-3" = {
+      orientation = "horizontal";
+      drawer = {
+        transition-duration = 600;
+        children-class = "not-power";
+        transition-to-left = true;
+        click-to-reveal = true;
+      };
+      modules = [
+        "pulseaudio"
+        "pulseaudio/slider"
+      ];
     };
     pulseaudio = {
-      format = "{icon} {volume}%";
-      format-muted = "<span foreground='${blue}'>󰖁</span> {volume}%";
+      format = "{icon}";
+      rotate = 0;
+      format-muted = "婢";
+      tooltip-format = "{icon} {desc} // {volume}%";
+      scroll-step = 5;
       format-icons = {
-        default = [ "<span foreground='${blue}'>󰕾</span>" ];
+        headphone = "";
+        hands-free = "";
+        headset = "";
+        phone = "";
+        portable = "";
+        car = "";
+        default = [ "" "" "" ];
       };
-      scroll-step = 2;
-      on-click = "pamixer -t";
-      on-click-right = "pavucontrol";
     };
-    battery = {
-      format = "<span foreground='${yellow}'>{icon}</span> {capacity}%";
-      format-icons = [
-        "󰂎"
-        "󰁺"
-        "󰁼"
-        "󰁾"
-        "󰂀"
-      ];
-      format-charging = "<span foreground='${yellow}'>󰂄</span> {capacity}%";
-      format-full = "<span foreground='${yellow}'>󰁹</span> {capacity}%";
-      format-warning = "<span foreground='${yellow}'>󰂃</span> {capacity}%";
-      interval = 5;
-      states = {
-        warning = 20;
-      };
-      format-time = "{H}h{M}m";
-      tooltip = true;
-      tooltip-format = "{time}";
-    };
-    "hyprland/language" = {
-      tooltip = true;
-      tooltip-format = "Keyboard layout";
-      format = "<span foreground='#FABD2F'>󰌌</span> {}";
-      format-fr = "FR";
-      format-en = "US";
-      on-click = "hyprctl switchxkblayout at-translated-set-2-keyboard next";
-    };
-    "custom/launcher" = {
-      format = "󰸉";
-      on-click = "random-wallpaper";
-      on-click-right = "rofi -show drun";
-      tooltip = "true";
-      tooltip-format = "Random Wallpaper";
+    "pulseaudio/slider" = {
+      min = 5;
+      max = 100;
+      rotate = 0;
+      scroll-step = 1;
     };
     "custom/notification" = {
-      tooltip = true;
-      tooltip-format = "Notifications";
+      tooltip = false;
       format = "{icon}";
       format-icons = {
-        notification = "<span foreground='red'>󱅫<sup></sup></span>";
-        none = "󰂚";
-        dnd-notification = "<span foreground='red'>󰂛<sup></sup></span>";
-        dnd-none = "󰂛";
-        inhibited-notification = "<span foreground='red'>󱅫<sup></sup></span>";
-        inhibited-none = "󰂚";
-        dnd-inhibited-notification = "<span foreground='red'>󰂛<sup></sup></span>";
-        dnd-inhibited-none = "󰂛";
+        notification = "󰅸";
+        none = "󰂜";
+        dnd-notification = "󰅸";
+        dnd-none = "󱏨";
+        inhibited-notification = "󰅸";
+        inhibited-none = "󰂜";
+        dnd-inhibited-notification = "󰅸";
+        dnd-inhibited-none = "󱏨";
       };
       return-type = "json";
       exec-if = "which swaync-client";
       exec = "swaync-client -swb";
-      on-click = "swaync-client -t -sw";
       on-click-right = "swaync-client -d -sw";
+      on-click = "swaync-client -t -sw";
       escape = true;
-    };
-    "custom/power-menu" = {
-      tooltip = true;
-      tooltip-format = "Power menu";
-      format = "<span foreground='${red}'>󰐥</span>";
-      on-click = "power-menu";
     };
   };
 }
