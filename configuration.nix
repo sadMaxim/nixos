@@ -134,7 +134,6 @@
 
   programs.hyprland.enable = true;
   programs.amnezia-vpn.enable = true;
-  programs.nm-applet.enable = true;
 
 
   # Fonts configuration

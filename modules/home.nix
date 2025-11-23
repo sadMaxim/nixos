@@ -1,4 +1,4 @@
-{ config, pkgs, home-manager, nixvim, ... }:
+{ config, pkgs, home-manager, nixvim, ironbar, ... }:
 {
  
   imports = [ home-manager.nixosModules.home-manager ];
@@ -15,13 +15,17 @@
      ripgrep
      yazi
      git
+     networkmanagerapplet
+     # udiskie
    ];
+   
 
    imports = [ 
      ./hyprland.nix
      ./kitty.nix
      ./waybar
      ./tmux.nix
+     # ./ironbar.nix
      nixvim.homeManagerModules.nixvim 
    ];
    

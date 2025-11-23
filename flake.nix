@@ -7,7 +7,11 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixvim.url = "github:nix-community/nixvim";
+    # ironbar.url = "github:nix-community/home-manager";
+    # ironbar.inputs.nixpkgs.follows = "nixpkgs";
+
   };
+
 
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {

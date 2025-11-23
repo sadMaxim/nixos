@@ -13,7 +13,8 @@ let
 in
 {
 
-    home.packages = with pkgs; [wofi
+    home.packages = with pkgs; [
+    wofi
     toggleEdp
     wev
     ];
