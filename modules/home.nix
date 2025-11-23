@@ -17,6 +17,7 @@
      git
      networkmanagerapplet
      # udiskie
+     kdePackages.dolphin
    ];
    
 
@@ -29,16 +30,18 @@
      nixvim.homeManagerModules.nixvim 
    ];
    
-   
+
 
     # programs 
     programs = {
       bash.enable = true;
       kitty.enable = true;
+      # git
       git = {
        enable = true;
        settings.user.email = "dresvynnikov@gmail.com";
        settings.user.name = "sadMaxim";
+       extraConfig.credential.helper = "store";
       };
 
       nixvim = (import ./nixvim {inherit pkgs;}) // {
