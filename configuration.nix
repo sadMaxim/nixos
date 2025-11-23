@@ -24,7 +24,6 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
-  programs.nm-applet.enable = true;
 
 
   # Set your time zone.
@@ -103,6 +102,7 @@
   #  wget
     lm_sensors
     htop
+    gocryptfs
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -134,8 +134,8 @@
 
   programs.hyprland.enable = true;
   programs.amnezia-vpn.enable = true;
+  programs.nm-applet.enable = true;
 
-  services.flatpak.enable = true;
 
   # Fonts configuration
   fonts.packages = with pkgs; [

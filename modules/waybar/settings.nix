@@ -165,6 +165,7 @@ in
       format-disconnected = " ";
       tooltip-format-disconnected = "Disconnected";
       interval = 2;
+      on-click = "nm-applet";
     };
     "group/expand-2" = {
       orientation = "horizontal";
