@@ -8,12 +8,12 @@ let
 in
 {
   programs.waybar.settings.mainBar = with custom; {
-    layer = "top";
+    layer = "bottom";
     position = "bottom";
     margin-left = 10;
     margin-right = 10;
     margin-top = 0;
-    margin-bottom = 7;
+    margin-bottom = 1;
     exclusive = true;
     passthrough = false;
     gtk-layer-shell = true;
