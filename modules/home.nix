@@ -13,6 +13,7 @@
      windsurf
      unzip
      ripgrep
+     yazi
    ];
 
    imports = [ 

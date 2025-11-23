@@ -1,7 +1,23 @@
 { pkgs, ... }:
+let
+  toggleEdp = pkgs.writeShellScriptBin "toggle-edp" ''
+    # Toggle eDP-1 (laptop screen) on/off
+    if hyprctl monitors | grep -q "eDP-1"; then
+      # eDP-1 is active, disable it
+      hyprctl keyword monitor "eDP-1,disable"
+    else
+      # eDP-1 is disabled, enable it
+      hyprctl keyword monitor "eDP-1,preferred,auto,1"
+    fi
+  '';
+in
 {
 
-    home.packages = with pkgs; [wofi google-chrome];
+    home.packages = with pkgs; [wofi
+    google-chrome 
+    toggleEdp
+    wev
+    ];
     
     ##### wofi 
     xdg.configFile."wofi/config".text = ''
@@ -80,7 +96,7 @@
     enable = true;
     settings = {
       preload = [ "${../beautifulmountainscape.jpg}" ];
-      wallpaper = [ "DP-1,${../beautifulmountainscape.jpg}" ];
+      wallpaper = [ "DP-1,eDP-1,${../beautifulmountainscape.jpg}" ];
       };
     };
 
@@ -88,6 +104,13 @@
       enable = true;
       settings = {
         "$mod" = "SUPER";
+        
+        # Monitor configuration
+        monitor = [
+          ",preferred,auto,1"          
+          "eDP-1,preferred,auto,1"
+        ];
+        
         # i3-style keybindings
         bind = [
           # Launch apps
@@ -135,6 +158,9 @@
           # Fullscreen and floating
           "$mod, F, fullscreen"
           "$mod SHIFT, Space, togglefloating"
+          
+          # Monitor control
+          ", F8, exec, toggle-edp"
         ];
         
         # Mouse bindings
