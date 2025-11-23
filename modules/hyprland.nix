@@ -102,7 +102,7 @@ in
     enable = true;
     settings = {
       preload = [ "${../beautifulmountainscape.jpg}" ];
-      wallpaper = [ "DP-1,eDP-1,${../beautifulmountainscape.jpg}" ];
+      wallpaper = [ ", ${../beautifulmountainscape.jpg}" ];
       };
     };
 
