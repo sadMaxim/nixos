@@ -193,6 +193,8 @@ in
         input = {
           kb_layout = "us";
           follow_mouse = 1;
+          repeat_delay = 150;
+          repeat_rate = 50;
         };
         
         # Autostart
