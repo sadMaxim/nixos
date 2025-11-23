@@ -20,6 +20,7 @@
      ./hyprland.nix
      ./kitty.nix
      ./waybar
+     ./tmux.nix
      nixvim.homeManagerModules.nixvim 
    ];
    

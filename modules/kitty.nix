@@ -7,7 +7,7 @@
 
     font = {
       name = "Maple Mono";
-      size = 15;
+      size = 16;
     };
 
     extraConfig = ''
@@ -24,6 +24,13 @@
       enable_audio_bell = false;
       mouse_hide_wait = 60;
       window_padding_width = 5;
+      
+      ## Line wrapping
+      scrollback_pager_history_size = 0;
+      scrollback_fill_enlarged_window = true;
+
+      ## Autostart tmux
+      shell = "tmux";
 
       ## Tabs
       tab_title_template = "{index}";
