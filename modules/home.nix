@@ -14,6 +14,7 @@
      unzip
      ripgrep
      yazi
+     git
    ];
 
    imports = [ 

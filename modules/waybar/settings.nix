@@ -37,7 +37,7 @@ in
       "group/expand-2"
       "memory"
       "cpu"
-      "temperature"
+      "custom/temperature"
       "clock"
       "custom/notification"
       "custom/padd"
@@ -131,14 +131,12 @@ in
       tooltip = true;
       tooltip-format = "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)";
     };
-    temperature = {
-      thermal-zone = 2;
-      hwmon-path = "/sys/class/hwmon/hwmon2/temp1_input";
-      critical-threshold = 80;
-      format = "{icon} {temperatureC}°C";
-      format-critical = "{icon} {temperatureC}°C";
-      format-icons = [ "" "" "" "" "" ];
+    "custom/temperature" = {
+      exec = "sensors -A | grep 'Core' | awk '{sum+=$3; count++} END {printf \"%.0f°C\", sum/count}'";
+      interval = 2;
+      format = " {}";
       tooltip = true;
+      exec-tooltip = "sensors -A | grep 'Core'";
     };
     clock = {
       format = "{:%I:%M %p}";
