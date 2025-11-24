@@ -7,7 +7,6 @@
   
   home-manager.users.maxim = { pkgs, ... }: {
 
-   nixpkgs.config.allowUnfree = true;
    home.stateVersion = "25.05";
    home.packages = with pkgs; [
      unzip
@@ -31,7 +30,7 @@
      ./waybar
      ./tmux.nix
      # ./ironbar.nix
-     nixvim.homeManagerModules.nixvim 
+     nixvim.homeModules.nixvim 
    ];
    
 
@@ -45,7 +44,7 @@
        enable = true;
        settings.user.email = "dresvynnikov@gmail.com";
        settings.user.name = "sadMaxim";
-       extraConfig.credential.helper = "store";
+       settings.credential.helper = "store";
       };
 
       nixvim = (import ./nixvim {inherit pkgs;}) // {

@@ -27,9 +27,13 @@
 
     nvim-tree = {
       enable = true;
-      disableNetrw = true;
-      git.enable = true;
-      git.timeout = 2000;
+      settings = {
+        disable_netrw = true;
+        git = {
+          enable = true;
+          timeout = 2000;
+        };
+      };
     };
     nvim-autopairs.enable = true;
     lazygit.enable = true;
@@ -160,4 +164,3 @@
   ];
 
 }
-
