@@ -12,6 +12,15 @@ let
   '';
 in
 {
+    services.swayidle = {
+      enable = true;
+      timeouts = [
+        {
+          timeout = 300;
+          command = "hyprlock";
+        }
+      ];
+    };
 
     home.packages = with pkgs; [
     wofi
@@ -214,4 +223,3 @@ in
       };
     };
 }
-
