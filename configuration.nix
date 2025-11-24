@@ -103,6 +103,8 @@
     lm_sensors
     htop
     gocryptfs
+    pamixer
+    openssl
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

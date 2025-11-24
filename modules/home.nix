@@ -10,7 +10,6 @@
    nixpkgs.config.allowUnfree = true;
    home.stateVersion = "25.05";
    home.packages = with pkgs; [
-     windsurf
      unzip
      ripgrep
      yazi
@@ -19,6 +18,10 @@
      # udiskie
      kdePackages.dolphin
      hyprlock
+     windsurf
+     wl-clipboard
+     gemini-cli
+     codex
    ];
    
 

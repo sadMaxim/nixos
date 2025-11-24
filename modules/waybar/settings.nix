@@ -209,19 +209,27 @@ in
       ];
     };
     pulseaudio = {
-      format = "{icon}";
+      # Show icon + volume
+      format = "{icon} {volume}%";
       rotate = 0;
-      format-muted = "婢";
+      format-muted = "󰝟"; # or whatever glyph you like
       tooltip-format = "{icon} {desc} // {volume}%";
       scroll-step = 5;
+
+      # Use pamixer for control
+      on-click = "pamixer -t";       # toggle mute
+      on-scroll-up = "pamixer -i 5"; # +5%
+      on-scroll-down = "pamixer -d 5"; # -5%
+
       format-icons = {
-        headphone = "";
-        hands-free = "";
-        headset = "";
-        phone = "";
-        portable = "";
-        car = "";
-        default = [ "" "" "" ];
+        # Example icons:
+        headphone = "";
+        hands-free = "";
+        headset = "";
+        phone = "";
+        portable = "";
+        car = "";
+        default = [ "󰕿" "󰖀" "󰕾" ]; # low / mid / high
       };
     };
     "pulseaudio/slider" = {
