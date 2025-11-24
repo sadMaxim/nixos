@@ -147,6 +147,11 @@
      nerd-fonts.fira-code
   ];
 
+  powerManagement.resumeCommands = ''
+  # Make sure NetworkManager restarts each time we resume
+    systemctl restart NetworkManager.service
+  '';
+
 
 nix = {
     settings = {
