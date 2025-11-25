@@ -29,8 +29,6 @@
       scrollback_pager_history_size = 0;
       scrollback_fill_enlarged_window = true;
 
-      ## Autostart tmux
-      shell = "tmux";
 
       ## Tabs
       tab_title_template = "{index}";

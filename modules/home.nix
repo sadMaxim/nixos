@@ -39,6 +39,10 @@
     programs = {
       bash.enable = true;
       kitty.enable = true;
+      direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
       # git
       git = {
        enable = true;
