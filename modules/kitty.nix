@@ -52,8 +52,10 @@
       "alt+4" = "goto_tab 4";
 
       ## Unbind
-      "ctrl+shift+left" = "no_op";
-      "ctrl+shift+right" = "no_op";
+      # "ctrl+shift+left" = "no_op";
+      # "ctrl+shift+right" = "no_op";
+      "ctrl+-" = "change_font_size all -1.0";
+      "ctrl++" = "change_font_size all +1.0";
     };
   };
 }
