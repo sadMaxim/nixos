@@ -159,7 +159,7 @@
     set tags+=./tags,tags,./.git/tags
   ";
   extraPlugins = with pkgs.vimPlugins; [
-  purescript-vim 
+    purescript-vim 
   # completion-nvim
   ];
 
