@@ -12,27 +12,13 @@ let
   '';
 in
 {
-    services.swayidle = {
-      enable = true;
-      timeouts = [
-        # lock at 5 min
-        {
-          timeout = 300;
-          command = "hyprlock";
-        }
 
-        # turn off displays at 10 min
-        {
-          timeout = 600;
-          command = "hyprctl dispatch dpms off";
-          resumeCommand = "hyprctl dispatch dpms on";
-        }
-        {
-          timeout = 1200;
-          command = "systemctl suspend";
-        }
-      ];
+    ###idle
+
+    services.hypridle = {
+      enable = true;
     };
+
 
     home.packages = with pkgs; [
     wofi
