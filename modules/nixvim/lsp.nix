@@ -7,26 +7,10 @@ in
     enable = true;
     servers = {
       pyright.enable = true;
-      nixd = {
-        enable = true;
-        settings = {
-          nixpkgs = {
-            expr = "import <nixpkgs> { }";
-          };
-          formatting.command = [
-            (pkgs.lib.getExe pkgs.alejandra)
-          ];
-          options = {
-            nixos = {
-              expr = "(builtins.getFlake \"${flakePath}\").nixosConfigurations.nixos.options";
-            };
-          };
-        };
-      };
+      nixd.enable = true; 
       purescriptls.enable = true;
       purescriptls.filetypes = ["dhall" "purescript"];
       purescriptls.package = null;
-
       rust_analyzer.enable = true;
       gopls.enable = true;
 
