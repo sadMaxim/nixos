@@ -21,7 +21,7 @@ in
       settings = {
         general = {
           before_sleep_cmd = "loginctl lock-session";
-          after_sleep_cmd = "hyprctl dispatch dpms on";
+          after_sleep_cmd = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
           lock_cmd = "pidof hyprlock || hyprlock";
           ignore_dbus_inhibit = false;
         };
@@ -30,17 +30,17 @@ in
           {
             timeout = 300;
             on-timeout = "hyprlock";
-            on-resume = "hyprctl dispatch dpms on";
+            on-resume = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
           }
           {
             timeout = 360;
             on-timeout = "hyprctl dispatch dpms off";
-            on-resume = "hyprctl dispatch dpms on";
+            on-resume = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
           }
           {
             timeout = 1200;
             on-timeout = "systemctl suspend";
-            on-resume = "hyprctl dispatch dpms on";
+            on-resume = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
           }
         ];
       };
