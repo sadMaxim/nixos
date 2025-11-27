@@ -48,9 +48,10 @@ in
 
 
     home.packages = with pkgs; [
-    wofi
-    toggleEdp
-    wev
+      wofi
+      toggleEdp
+      wev
+      hyprpaper
     ];
     
     ##### wofi 
@@ -133,13 +134,10 @@ in
 
 
     ### wallpaper
-   services.hyprpaper = {
-    enable = true;
-    settings = {
-      preload = [ "${../beautifulmountainscape.jpg}" ];
-      wallpaper = [ ", ${../beautifulmountainscape.jpg}" ];
-      };
-    };
+    xdg.configFile."hypr/hyprpaper.conf".text = ''
+      preload = ${../beautifulmountainscape.jpg}
+      wallpaper = , ${../beautifulmountainscape.jpg}
+    '';
 
 
     wayland.windowManager.hyprland = {
@@ -244,7 +242,9 @@ in
         };
         
         # Autostart
-        exec-once = [ ];
+        exec-once = [
+          "hyprpaper"
+        ];
       };
     };
 }
