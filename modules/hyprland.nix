@@ -154,7 +154,7 @@ in
         # i3-style keybindings
         bind = [
           # warpd
-          "$mod, P, exec, warpd --hint2"
+          # "$mod, P, exec, warpd --hint2"
           # Lock
           "$mod, BackSpace, exec, hyprlock"
 
