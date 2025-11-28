@@ -21,6 +21,7 @@
      wl-clipboard
      gemini-cli
      codex
+     warpd
    ];
    
 

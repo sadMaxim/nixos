@@ -153,6 +153,9 @@ in
         
         # i3-style keybindings
         bind = [
+          # warpd
+          # "$mod, p, exec, warpd --hint2 "
+          "$mod, P, exec, kitty "
           # Lock
           "$mod, BackSpace, exec, hyprlock"
 
@@ -204,6 +207,9 @@ in
           
           # Monitor control
           ", F8, exec, toggle-edp"
+
+
+          # warpd
         ];
         
         # Mouse bindings
