@@ -23,6 +23,7 @@
      codex
      warpd
      pwvucontrol
+     brightnessctl
    ];
    
 

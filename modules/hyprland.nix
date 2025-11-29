@@ -81,7 +81,7 @@
     programs.google-chrome = {
       enable = true;
       commandLineArgs = [
-          "--force-device-scale-factor=1.8"
+          "--force-device-scale-factor=2.0"
       ];
     };
 
@@ -159,11 +159,9 @@
           "$mod SHIFT, Space, togglefloating"
           
           # Monitor control
-          ", F5, exec, hyprctl keyword monitor 'eDP-1,disable'" 
-          ", F6, exec, hyprctl keyword monitor 'eDP-1,preferred,auto,1'" 
-          ", F7, exec, hyprctl keyword monitor 'DP-1,disable'" 
-          ", F8, exec, hyprctl keyword monitor 'DP-1,preferred,auto,1'" 
-
+          ", F5, exec, hyprctl --batch \"keyword monitor 'eDP-1,disable'; keyword monitor 'DP-1,preferred,auto,1'\"" 
+          ", F6, exec, hyprctl --batch \"keyword monitor 'DP-1,disable'; keyword monitor 'eDP-1,preferred,auto,1'\"; brightnessctl set 90%" 
+          ", F7, exec, hyprctl --batch \"keyword monitor 'eDP-1,preferred,0x0,1'; keyword monitor 'DP-1,preferred,0x-1440,1'\"; brightnessctl set 90%" 
           # warpd
         ];
         
