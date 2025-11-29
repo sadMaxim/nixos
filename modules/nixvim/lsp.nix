@@ -12,6 +12,7 @@ in
       purescriptls.filetypes = ["dhall" "purescript"];
       purescriptls.package = null;
       rust_analyzer.enable = true;
+      rust_analyzer.installRustc = true;
       gopls.enable = true;
 
       # haskell

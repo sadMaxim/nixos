@@ -22,7 +22,7 @@
      gemini-cli
      codex
      warpd
-     blueman
+     pwvucontrol
    ];
    
 
