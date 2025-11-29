@@ -1,23 +1,9 @@
 { pkgs, ... }:
-let
-  toggleEdp = pkgs.writeShellScriptBin "toggle-edp" ''
-    # Toggle eDP-1 (laptop screen) on/off
-    if hyprctl monitors | grep -q "eDP-1"; then
-      # eDP-1 is active, disable it
-      hyprctl keyword monitor "eDP-1,disable"
-    else
-      # eDP-1 is disabled, enable it
-      hyprctl keyword monitor "eDP-1,preferred,auto,1"
-    fi
-  '';
-in
 {
-
     ###idle
 
     home.packages = with pkgs; [
       wofi
-      toggleEdp
       wev
       hyprpaper
     ];
@@ -115,8 +101,8 @@ in
         
         # Monitor configuration
         monitor = [
-          ",preferred,auto,1"          
-          # "eDP-1,disable"
+          "eDP-1,preferred,0x0,1"
+          "DP-1,preferred,0x-1440,1"
         ];
         
         # i3-style keybindings
