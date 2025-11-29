@@ -56,7 +56,7 @@
       "ctrl+-" = "change_font_size all -1.0";
       "ctrl++" = "change_font_size all +1.0";
       # Horizontal split (left/right)
-      "alt+s" = "launch --location=hsplit";
+      # "alt+s" = "launch --location=hsplit";
       # Vertical split (top/bottom)
       "alt+v" = "launch --location=vsplit";
       "alt+h"  = "neighboring_window left";
@@ -64,7 +64,9 @@
       "alt+k"    = "neighboring_window up";
       "alt+j"  = "neighboring_window down";
       # enter keyboard selection mode
-      "alt+]" = "selection_toggle";
+      # "alt+]" = "selection_toggle";
+      # "ctrl+shift+s" = "selection_toggle";
+
 
     };
   };
