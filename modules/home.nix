@@ -22,6 +22,7 @@
      gemini-cli
      codex
      warpd
+     blueman
    ];
    
 

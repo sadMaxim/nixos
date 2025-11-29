@@ -2,20 +2,13 @@
   plugins = {
     luasnip.enable = true;
     cmp-tabnine = { enable = true; };
-
     cmp-buffer = { enable = true; };
-
     cmp-emoji = { enable = true; };
-
     cmp-nvim-lsp = { enable = true; };
-
     cmp-path = { enable = true; };
-
     cmp_luasnip = { enable = true; };
-
     cmp = {
       enable = true;
-
       settings = {
         experimental = { ghost_text = true; };
         snippet.expand = ''
@@ -35,7 +28,6 @@
           { name = "path"; }
           { name = "cmp_tabnine"; }
         ];
-
         formatting = {
           fields = [ "abbr" "kind" "menu" ];
           format =
@@ -91,8 +83,6 @@
               end
             '';
         };
-
-
         mapping = {
           "<C-n>" = "cmp.mapping.select_next_item()";
           "<C-p>" = "cmp.mapping.select_prev_item()";

@@ -15,38 +15,6 @@ in
 
     ###idle
 
-    services.hypridle = {
-      enable = true;
-      package = pkgs.hypridle;
-      settings = {
-        general = {
-          before_sleep_cmd = "loginctl lock-session";
-          after_sleep_cmd = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
-          lock_cmd = "pidof hyprlock || hyprlock";
-          ignore_dbus_inhibit = false;
-        };
-
-        listeners = [
-          {
-            timeout = 300;
-            on-timeout = "hyprlock";
-            on-resume = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
-          }
-          {
-            timeout = 360;
-            on-timeout = "hyprctl dispatch dpms off";
-            on-resume = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
-          }
-          {
-            timeout = 1200;
-            on-timeout = "systemctl suspend";
-            on-resume = "hyprctl dispatch dpms on; hyprctl keyword monitor eDP-1,disable";
-          }
-        ];
-      };
-    };
-
-
     home.packages = with pkgs; [
       wofi
       toggleEdp
@@ -205,8 +173,10 @@ in
           "$mod SHIFT, Space, togglefloating"
           
           # Monitor control
-          ", F8, exec, toggle-edp"
-
+          ", F5, exec, hyprctl keyword monitor 'eDP-1,disable'" 
+          ", F6, exec, hyprctl keyword monitor 'eDP-1,preferred,auto,1'" 
+          ", F7, exec, hyprctl keyword monitor 'DP-1,disable'" 
+          ", F8, exec, hyprctl keyword monitor 'DP-1,preferred,auto,1'" 
 
           # warpd
         ];
