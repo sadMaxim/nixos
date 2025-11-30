@@ -11,6 +11,7 @@
     hop.enable = true;
     comment.enable = true;
     lualine.enable = true;
+    diffview.enable = true;
     windsurf-nvim = {
       enable = true;
       settings = {
