@@ -94,16 +94,21 @@
     '';
 
 
-    wayland.windowManager.hyprland = {
+    wayland.windowManager.hyprland =
+    let
+      single = ",preferred,auto,1";
+      edp = "eDP-1,preferred,0x0,1";
+      dp = "DP-1,preferred,0x-1440,1"; 
+      edpno = "eDP-1,disable";
+      dpno = "DP-1,disable";
+    in
+    {
       enable = true;
       settings = {
         "$mod" = "SUPER";
         
         # Monitor configuration
-        monitor = [
-          "eDP-1,preferred,0x0,1"
-          "DP-1,preferred,0x-1440,1"
-        ];
+        monitor = [edp  dp];
         
         # i3-style keybindings
         bind = [
@@ -159,9 +164,9 @@
           "$mod SHIFT, Space, togglefloating"
           
           # Monitor control
-          ", F5, exec, hyprctl --batch \"keyword monitor 'eDP-1,disable'; keyword monitor 'DP-1,preferred,auto,1'\"" 
-          ", F6, exec, hyprctl --batch \"keyword monitor 'DP-1,disable'; keyword monitor 'eDP-1,preferred,auto,1'\"; brightnessctl set 90%" 
-          ", F7, exec, hyprctl --batch \"keyword monitor 'eDP-1,preferred,0x0,1'; keyword monitor 'DP-1,preferred,0x-1440,1'\"; brightnessctl set 90%" 
+          ", F5, exec, hyprctl --batch 'keyword monitor ${single}; keyword monitor ${edpno}'" 
+          ", F6, exec, hyprctl --batch 'keyword monitor ${edp}; keyword monitor ${dpno}'; brightnessctl set 90%" 
+          ", F7, exec, hyprctl --batch 'keyword monitor ${edp}; keyword monitor ${dp}'; brightnessctl set 90%" 
           # warpd
         ];
         

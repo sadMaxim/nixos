@@ -46,7 +46,7 @@
 
     keybindings = {
       ## Tabs
-      "alt+t" = "new_tab --cwd=current";
+      "alt+t" = "new_tab";
       "alt+1" = "goto_tab 1";
       "alt+2" = "goto_tab 2";
       "alt+3" = "goto_tab 3";
