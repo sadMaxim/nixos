@@ -1,4 +1,4 @@
-{ ... }:
+{ config, pkgs, ... }:
 {
   programs.kitty = {
     enable = true;
@@ -6,10 +6,12 @@
 
     font = {
       name = "Maple Mono";
-      size = 16;
+      size = 17;
     };
 
+      # action_alias kitty_scrollback_nvim kitten /nix/store/1dh8q81avy5x54hh5w76mq2sh9zl449i-vim-pack-dir/pack/myNeovimPackages/start/kitty-scrollback.nvim/python/kitty_scrollback_nvim.py
     extraConfig = ''
+      action_alias kitty_scrollback_nvim kitten ${pkgs.vimPlugins.kitty-scrollback-nvim}/python/kitty_scrollback_nvim.py
       font_features MapleMono-Regular +ss01 +ss02 +ss04
       font_features MapleMono-Bold +ss01 +ss02 +ss04
       font_features MapleMono-Italic +ss01 +ss02 +ss04
@@ -17,6 +19,9 @@
     '';
 
     settings = {
+      allow_remote_control = "yes";
+      listen_on = "unix:/tmp/kitty";
+      # shell_integration = "enabled";
       confirm_os_window_close = 0;
       background_opacity = "0.66";
       scrollback_lines = 10000;
@@ -27,7 +32,6 @@
       ## Line wrapping
       scrollback_pager_history_size = 0;
       scrollback_fill_enlarged_window = true;
-      scrollback_pager = "nvim -R -n -c 'set buftype=nofile bufhidden=wipe nobackup noswapfile nowrite' -";
 
       ## clipboard 
       copy_on_select = "clipboard";
@@ -46,7 +50,7 @@
 
     keybindings = {
       ## Tabs
-      "alt+t" = "new_tab";
+      "alt+t" = "new_tab_with_cwd";
       "alt+1" = "goto_tab 1";
       "alt+2" = "goto_tab 2";
       "alt+3" = "goto_tab 3";
@@ -64,11 +68,9 @@
       "alt+l" = "neighboring_window right";
       "alt+k"    = "neighboring_window up";
       "alt+j"  = "neighboring_window down";
-      # enter keyboard selection mode
-      "ctrl+shift+s" = "show_scrollback";
-      "alt+]" = "show_scrollback";
-
-
+      
+      # kitty-scrollback.nvim
+      "alt+]" = "kitty_scrollback_nvim";
     };
   };
 }

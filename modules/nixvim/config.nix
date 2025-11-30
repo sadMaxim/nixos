@@ -22,6 +22,7 @@
     };
 
 
+    kitty-scrollback.enable = true;
     telescope.enable = true;
     fzf-lua.enable = true;
 
