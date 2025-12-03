@@ -7,9 +7,9 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixvim.url = "github:nix-community/nixvim";
+    # pip2nix.url ="github:nix-community/pip2nix"; 
     # ironbar.url = "github:nix-community/home-manager";
     # ironbar.inputs.nixpkgs.follows = "nixpkgs";
-
   };
 
 

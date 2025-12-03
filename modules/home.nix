@@ -32,6 +32,7 @@
      ./kitty.nix
      ./waybar
      ./tmux.nix
+     ./programming.nix
      # ./ironbar.nix
      nixvim.homeModules.nixvim 
    ];

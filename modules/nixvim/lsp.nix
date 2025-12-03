@@ -7,7 +7,7 @@ in
     enable = true;
     servers = {
       pyright.enable = true;
-      pyright.package = null;
+      # pyright.package = null;
       nixd.enable = true; 
       purescriptls.enable = true;
       purescriptls.filetypes = ["dhall" "purescript"];
