@@ -1,5 +1,10 @@
 { pkgs, ... }:
 {
+  programs.bash.initExtra = ''
+    export LD_LIBRARY_PATH="${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
+  '';
+
   home.packages = [
      pkgs.python313
 
