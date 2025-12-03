@@ -82,7 +82,22 @@
     programs.google-chrome = {
       enable = true;
       commandLineArgs = [
-          "--force-device-scale-factor=2.0"
+        # High DPI scaling (adjust to your needs: 1.25, 1.5, 2.0)
+        "--force-device-scale-factor=1.8"
+
+        # Enable proper subpixel rendering
+        "--enable-features=UseOzonePlatform,WebContentsForceDark,DefaultEnableFontSubpixelPositioning"
+
+        # Prefer RGB subpixel AA (best on most monitors)
+        "--force-color-profile=srgb"
+
+        # Ensure hardware acceleration is on (sharper rendering)
+        "--enable-gpu-rasterization"
+        "--enable-zero-copy"
+
+        # Text contrast improvements
+        "--enable-font-antialiasing"
+        "--font-render-hinting=slight"
       ];
     };
 
