@@ -68,9 +68,17 @@
       "alt+l" = "neighboring_window right";
       "alt+k"    = "neighboring_window up";
       "alt+j"  = "neighboring_window down";
+      "f11" = "save_as_session --save-only --use-foreground-process --base-dir ~/.local/state last";
+      "f12" = "goto_session ~/.local/state/last";
+
+            
+
+      
+
       
       # kitty-scrollback.nvim
       "alt+]" = "kitty_scrollback_nvim";
+      
     };
   };
 }

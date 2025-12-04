@@ -121,8 +121,19 @@
    {
     mode = "n"; 
     key = "act";
-    action = ":lua vim.lsp.buf.code_action()<CR>";
+   action = ":lua vim.lsp.buf.code_action()<CR>";
    }
+
+    {
+      mode = "v";
+      key = "<Tab>";
+      action = ":lua vim.lsp.buf.code_action()<CR>";
+    }
+    {
+      mode = "n";
+      key = "<Tab>";
+      action = ":lua vim.lsp.buf.code_action({ context = { only = { 'source' } } })<CR>";
+    }
    # Windsurf keymaps
    
   ];
