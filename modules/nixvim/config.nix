@@ -1,5 +1,10 @@
 {pkgs, ...}:
 {
+  globals = {
+    mapleader = " ";
+    maplocalleader = " ";
+  };
+
   plugins = {
     bufferline.enable = true;
     web-devicons.enable = true;
