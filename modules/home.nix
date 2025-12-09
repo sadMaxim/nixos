@@ -25,6 +25,7 @@
      pwvucontrol
      brightnessctl
      dmidecode
+     nodejs
    ];
    
 

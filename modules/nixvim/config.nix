@@ -5,6 +5,12 @@
     maplocalleader = " ";
   };
 
+  # Ensure leader is set early in case globals are applied too late for some plugins.
+  extraConfigLuaPre = ''
+    vim.g.mapleader = " "
+    vim.g.maplocalleader = " "
+  '';
+
   plugins = {
     bufferline.enable = true;
     web-devicons.enable = true;
