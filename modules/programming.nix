@@ -5,8 +5,16 @@
     export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
   '';
 
+  home.file.".npmrc".text = ''
+    ignore-scripts=true
+    fund=false
+    audit=false
+  '';
+
+
   home.packages = [
      pkgs.python313
+     pkgs.nodejs
 
     # (pkgs.python313.withPackages (ps: [
     #   ps.pip
@@ -30,6 +38,6 @@
     #   ps.scipy
     #   ps.python-dateutil
     # ]))
-
   ];
+  
 }

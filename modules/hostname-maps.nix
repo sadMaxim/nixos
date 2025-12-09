@@ -1,0 +1,6 @@
+{ pkgs, ... }:
+{
+ networking.hosts = {
+    "127.0.0.1" = [ "stclone.local" ];
+ };
+}

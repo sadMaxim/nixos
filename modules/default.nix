@@ -14,6 +14,7 @@
         { nixpkgs.config.allowUnfree = true; }
         ../configuration.nix
         ./home.nix
+        ./hostname-maps.nix
       ];
     };
   };
