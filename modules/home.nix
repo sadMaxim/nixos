@@ -26,6 +26,8 @@
      brightnessctl
      dmidecode
      nodejs
+     brave
+     age
    ];
    
 

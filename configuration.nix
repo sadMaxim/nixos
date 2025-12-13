@@ -138,6 +138,8 @@
   programs.amnezia-vpn.enable = true;
   services.udisks2.enable = true;
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
+  # display
+  services.ddccontrol.enable = true;
 
   ## bluetooth
   hardware.bluetooth = {
