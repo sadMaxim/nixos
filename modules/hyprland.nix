@@ -7,6 +7,7 @@
       wofi
       wev
       hyprpaper
+      rose-pine-hyprcursor
     ];
     
     ##### wofi 
@@ -125,6 +126,11 @@
         
         # Monitor configuration
         monitor = [edp  dp];
+        env = [
+          "HYPRCURSOR_THEME,rose-pine-hyprcursor"
+          "XCURSOR_THEME,rose-pine-hyprcursor"
+          "XCURSOR_SIZE,24"
+        ];
         
         # i3-style keybindings
         bind = [
@@ -224,11 +230,11 @@
         # Autostart
         exec-once = [
           "hyprpaper"
+          "hyprctl setcursor rose-pine-hyprcursor 24"
         ];
       };
     };
 }
-
 
 
 
