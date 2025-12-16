@@ -1,7 +1,23 @@
 { pkgs, ... }:
 {
     ###idle
-    services.hypridle.enable = true;
+    services.hypridle = {
+      enable = true;
+      settings = {
+        listener = [
+          {
+            timeout = 20;
+            on-timeout = "pidof hyprlock || hyprlock";
+            on-resume = "notify-send 'Welcome back!'";
+          }
+          {
+            timeout = 30;
+            on-timeout = "hyprctl dispatch dpms off";
+            on-resume = "hyprctl dispatch dpms on";
+          }
+        ];
+      };
+    };
 
     home.packages = with pkgs; [
       wofi
@@ -235,7 +251,6 @@
       };
     };
 }
-
 
 
 
