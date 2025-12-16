@@ -33,7 +33,9 @@ in
       "custom/l_end"
       "group/expand"
       "network"
+      "custom/padd"
       "group/expand-3"
+      "custom/padd"
       "group/expand-2"
       "memory"
       "cpu"
@@ -176,9 +178,20 @@ in
         click-to-reveal = true;
       };
       modules = [
+        "custom/ddc-brightness"
         "backlight"
         "backlight/slider"
       ];
+    };
+    "custom/ddc-brightness" = {
+      return-type = "json";
+      exec = "~/.config/waybar/scripts/ddcutil-brightness --get";
+      interval = 5;
+      format = "󰃠 {percentage}%";
+      tooltip = true;
+      exec-if = "command -v ddcutil >/dev/null 2>&1";
+      on-scroll-up = "~/.config/waybar/scripts/ddcutil-brightness --inc 5";
+      on-scroll-down = "~/.config/waybar/scripts/ddcutil-brightness --dec 5";
     };
     backlight = {
       device = "intel_backlight";

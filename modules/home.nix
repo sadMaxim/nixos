@@ -24,6 +24,7 @@
      warpd
      pwvucontrol
      brightnessctl
+     ddcutil
      dmidecode
      nodejs
      brave
