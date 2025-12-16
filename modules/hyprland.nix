@@ -6,12 +6,12 @@
       settings = {
         listener = [
           {
-            timeout = 20;
+            timeout = 50;
             on-timeout = "pidof hyprlock || hyprlock";
             on-resume = "notify-send 'Welcome back!'";
           }
           {
-            timeout = 30;
+            timeout = 80;
             on-timeout = "hyprctl dispatch dpms off";
             on-resume = "hyprctl dispatch dpms on";
           }
