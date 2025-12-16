@@ -129,7 +129,7 @@
         env = [
           "HYPRCURSOR_THEME,rose-pine-hyprcursor"
           "XCURSOR_THEME,rose-pine-hyprcursor"
-          "XCURSOR_SIZE,24"
+          "XCURSOR_SIZE,28"
         ];
         
         # i3-style keybindings
@@ -230,7 +230,7 @@
         # Autostart
         exec-once = [
           "hyprpaper"
-          "hyprctl setcursor rose-pine-hyprcursor 24"
+          "hyprctl setcursor rose-pine-hyprcursor 28"
         ];
       };
     };
