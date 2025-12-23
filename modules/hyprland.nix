@@ -145,7 +145,7 @@
         env = [
           "HYPRCURSOR_THEME,rose-pine-hyprcursor"
           "XCURSOR_THEME,rose-pine-hyprcursor"
-          "XCURSOR_SIZE,28"
+          "XCURSOR_SIZE,32"
         ];
         
         # i3-style keybindings
