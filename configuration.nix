@@ -141,6 +141,8 @@
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
   # display
   services.ddccontrol.enable = true;
+  ### database psgres
+  services.postgresql.enable = true;
 
   ## bluetooth
   hardware.bluetooth = {
