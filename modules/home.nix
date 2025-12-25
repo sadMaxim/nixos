@@ -5,7 +5,14 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   
-  home-manager.users.maxim = { pkgs, ... }: {
+  home-manager.users.maxim = { pkgs, ... }:
+  let
+    pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
+      exec sudo -u postgres ${pkgs.pgweb}/bin/pgweb \
+        --bind 127.0.0.1 --listen 8081 \
+        --url "postgres:///postgres?host=/run/postgresql" "$@"
+    '';
+  in {
 
    home.stateVersion = "25.05";
    home.packages = with pkgs; [
@@ -29,6 +36,8 @@
      nodejs
      brave
      age
+     # databases
+     pgwebWrapped
    ];
    
 

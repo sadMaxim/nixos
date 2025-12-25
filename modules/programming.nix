@@ -9,6 +9,7 @@
     ignore-scripts=true
     fund=false
     audit=false
+    package-lock-only=true
   '';
 
 
