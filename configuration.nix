@@ -141,14 +141,16 @@
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
   # display
   services.ddccontrol.enable = true;
-  ### database psgres
+  ### database postgres (local-only)
   services.postgresql = {
     enable = true;
-    ensureDatabases = [ "data" ];
-    authentication = pkgs.lib.mkOverride 10 ''
-      #type database  DBuser  auth-method
-      local all       all     trust
-    '';
+    enableTCPIP = false; 
+    ensureUsers = [
+      { 
+        name = "maxim";
+      }
+    ];
+    ensureDatabases = [ "avatar" ];
   };
 
   ## bluetooth

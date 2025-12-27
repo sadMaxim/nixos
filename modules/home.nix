@@ -10,7 +10,7 @@
     pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
       exec sudo -u postgres ${pkgs.pgweb}/bin/pgweb \
         --bind 127.0.0.1 --listen 8081 \
-        --url "postgres:///postgres?host=/run/postgresql" "$@"
+        --url "postgres://postgres@/?host=/run/postgresql" "$@"
     '';
   in {
 
