@@ -8,9 +8,11 @@
   home-manager.users.maxim = { pkgs, ... }:
   let
     pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
-      exec sudo -u postgres ${pkgs.pgweb}/bin/pgweb \
+      set -euo pipefail
+      url="''${PGWEB_URL:-postgres://maxim@/maxim?host=/run/postgresql}"
+      exec ${pkgs.pgweb}/bin/pgweb \
         --bind 127.0.0.1 --listen 8081 \
-        --url "postgres://postgres@/?host=/run/postgresql" "$@"
+        --url "$url" "$@"
     '';
   in {
 
