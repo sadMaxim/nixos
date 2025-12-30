@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports =
@@ -144,13 +144,27 @@
   ### database postgres (local-only)
   services.postgresql = {
     enable = true;
-    enableTCPIP = false; 
-    ensureUsers = [
-      { 
-        name = "maxim";
-      }
-    ];
-    ensureDatabases = [ "avatar" ];
+    enableTCPIP = false;
+    ensureDatabases = [ "maxim" ];
+    ensureUsers = [{ name = "maxim"; ensureDBOwnership = true; }];
+  };
+
+  systemd.services.fix-postgresql = {
+    wantedBy = [ "multi-user.target" ];
+    after = [ "postgresql.service" ];
+    requires = [ "postgresql.service" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      User = "postgres";
+    };
+
+    path = [ pkgs.postgresql ];
+
+    script = ''
+      psql -d maxim -c "ALTER SCHEMA public OWNER TO maxim;"
+      psql -d maxim -c "GRANT USAGE, CREATE ON SCHEMA public TO maxim;"
+    '';
   };
 
   ## bluetooth
