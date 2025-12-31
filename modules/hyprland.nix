@@ -11,7 +11,7 @@
             on-resume = "notify-send 'Welcome back!'";
           }
           {
-            timeout = 360;
+            timeout = 1800;
             on-timeout = "hyprctl dispatch dpms off";
             on-resume = "hyprctl dispatch dpms on";
           }
