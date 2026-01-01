@@ -83,7 +83,7 @@
   users.users.maxim = {
     isNormalUser = true;
     description = "maxim";
-    extraGroups = [ "networkmanager" "wheel" "postgres" ];
+    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" ];
     packages = with pkgs; [
     #  thunderbird
     pavucontrol
@@ -92,6 +92,8 @@
 
   # Install firefox.
   # programs.firefox.enable = true;
+  # mobile connect 
+  # programs.kdeconnect.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -106,6 +108,8 @@
     gocryptfs
     pamixer
     openssl
+    android-tools
+    simple-mtpfs
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -136,6 +140,7 @@
   system.stateVersion = "25.05"; # Did you read the comment?
 
   programs.hyprland.enable = true;
+  programs.adb.enable = true;
   programs.amnezia-vpn.enable = true;
   services.udisks2.enable = true;
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
