@@ -44,8 +44,8 @@
     LC_TIME = "sv_SE.UTF-8";
   };
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  # Disable the X11 windowing system; we'll run Wayland-only Hyprland instead.
+  services.xserver.enable = false;
 
   # Enable the GNOME Desktop Environment.
   # services.xserver.displayManager.gdm.enable = true;
@@ -139,7 +139,19 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05"; # Did you read the comment?
 
-  programs.hyprland.enable = true;
+  programs.hyprland = {
+    enable = true;
+    # Set to true if you need X11 apps via Xwayland.
+    xwayland.enable = false;
+  };
+  services.greetd = {
+    enable = true;
+    settings.default_session = {
+      command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --cmd Hyprland";
+      user = "greeter";
+    };
+  };
+  hardware.graphics.enable = true;
   programs.adb.enable = true;
   programs.amnezia-vpn.enable = true;
   services.udisks2.enable = true;
