@@ -129,7 +129,7 @@
 
     wayland.windowManager.hyprland =
     let
-      single = ",preferred,auto,1";
+      single = "DP-1,preferred,auto,1";
       edp = "eDP-1,preferred,0x0,1";
       dp = "DP-1,preferred,0x-1440,1"; 
       edpno = "eDP-1,disable";
@@ -251,7 +251,6 @@
       };
     };
 }
-
 
 
 
