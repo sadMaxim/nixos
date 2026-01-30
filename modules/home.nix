@@ -40,6 +40,8 @@
      age
      # databases
      pgwebWrapped
+     # design
+     blender
    ];
    
 
