@@ -30,6 +30,7 @@
      wl-clipboard
      gemini-cli
      codex
+     claude-code
      warpd
      pwvucontrol
      brightnessctl
