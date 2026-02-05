@@ -26,7 +26,10 @@
     opencode = {
       enable = true;
       settings = {
-        provider = "google";
+        provider = {
+          enabled = "kitty";
+        };
+        port = 4096;
       };
     };
     windsurf-nvim = {
@@ -159,6 +162,7 @@
     number=true;
     relativenumber=true;
     mouse="a";
+    autoread = true;
 
     tabstop=2;
     shiftwidth=2;
@@ -192,7 +196,6 @@
   ";
   extraPlugins = with pkgs.vimPlugins; [
     purescript-vim 
-    opencode-nvim
   ];
 
 }
