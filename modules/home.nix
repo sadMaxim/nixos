@@ -18,30 +18,55 @@
 
    home.stateVersion = "25.05";
    home.packages = with pkgs; [
+     # Archive extraction utility
      unzip
+     # Fast line-oriented regex search tool
      ripgrep
+     # Terminal file manager
      yazi
+     # Distributed version control system
      git
+     # Tray applet for NetworkManager
      networkmanagerapplet
-     # udiskie
+     # KDE Plasma file manager
      kdePackages.dolphin
+     # Screen locker for Hyprland Wayland compositor
      hyprlock
-     windsurf
+     # Wayland clipboard utilities
      wl-clipboard
-     gemini-cli
-     codex
-     claude-code
+     # Keyboard-driven mouse control
      warpd
+     # PulseAudio/PipeWire volume control utility
      pwvucontrol
+     # Command-line utility to control screen brightness
      brightnessctl
+     # DDC/CI control for monitors
      ddcutil
+     # DMI table decoder for hardware information
      dmidecode
+     # JavaScript runtime environment
      nodejs
+     # Process file descriptor lister
+     lsof
+     # Privacy-focused web browser
      brave
+     # Age encryption tool
      age
-     # databases
+
+     ##### ai
+     # Custom tool for AI-assisted code generation/editing
+     opencode
+     # AI code completion tool
+     codex
+     # Command-line interface for the Gemini AI model
+     gemini-cli
+
+     ##### databases
+     # Web-based PostgreSQL client
      pgwebWrapped
-     # design
+
+     ##### design
+     # 3D creation suite
      blender
    ];
    

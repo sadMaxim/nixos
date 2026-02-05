@@ -23,6 +23,12 @@
     comment.enable = true;
     lualine.enable = true;
     diffview.enable = true;
+    opencode = {
+      enable = true;
+      settings = {
+        provider = "google";
+      };
+    };
     windsurf-nvim = {
       enable = true;
       settings = {
@@ -53,7 +59,6 @@
     
 
   };
-
 
 
   highlightOverride = {
@@ -178,13 +183,16 @@
     vim.opt.showtabline = 0
     -- capabilities.textDocument.completion.completionItem.snippetSupport = true
   ";
+  
+  # extraConfigLua = builtins.readFile ./agents.lua;
+
   extraConfigVim="
     set clipboard+=unnamedplus
     set tags+=./tags,tags,./.git/tags
   ";
   extraPlugins = with pkgs.vimPlugins; [
     purescript-vim 
-  # completion-nvim
+    opencode-nvim
   ];
 
 }
