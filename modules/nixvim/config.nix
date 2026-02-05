@@ -26,10 +26,11 @@
     opencode = {
       enable = true;
       settings = {
-        provider = {
-          enabled = "kitty";
+        provider = "kitty";
+        kitty = {
+          target_tab = "OpenCode";
+          command = "opencode";
         };
-        port = 4096;
       };
     };
     windsurf-nvim = {
@@ -162,7 +163,6 @@
     number=true;
     relativenumber=true;
     mouse="a";
-    autoread = true;
 
     tabstop=2;
     shiftwidth=2;
