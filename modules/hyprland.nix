@@ -146,6 +146,7 @@
           "HYPRCURSOR_THEME,rose-pine-hyprcursor"
           "XCURSOR_THEME,rose-pine-hyprcursor"
           "XCURSOR_SIZE,34"
+          "KITTY_LISTEN_ON,unix:/tmp/kitty"
           # Disable Xwayland entirely for a Wayland-only session.
           "WLR_NO_XWAYLAND,1"
         ];
@@ -258,5 +259,4 @@
       };
     };
 }
-
 
