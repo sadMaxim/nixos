@@ -20,7 +20,7 @@
 
     settings = {
       allow_remote_control = "yes";
-      listen_on = "unix:@mykitty";
+      listen_on = "unix:/tmp/kitty";
       # shell_integration = "enabled";
       confirm_os_window_close = 0;
       background_opacity = "0.66";
