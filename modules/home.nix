@@ -17,6 +17,10 @@
   in {
 
    home.stateVersion = "25.05";
+   home.file.".config/opencode/opencode.json".text = builtins.toJSON {
+     "$schema" = "https://opencode.ai/config.json";
+     plugin = [ "opencode-gemini-auth@latest" ];
+   };
    home.packages = with pkgs; [
      # Archive extraction utility
      unzip
