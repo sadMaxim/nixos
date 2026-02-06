@@ -25,6 +25,7 @@
     diffview.enable = true;
     opencode = {
       enable = true;
+      package = pkgs.vimPlugins.opencode-nvim;
       settings = {
         provider = {
           enabled = "kitty";
