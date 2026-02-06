@@ -1,11 +1,12 @@
-{ config, pkgs, home-manager, nixvim, ironbar, ... }:
+{ config, pkgs, home-manager, nixvim, ironbar, nixpkgs-unstable, ... }:
 {
  
   imports = [ home-manager.nixosModules.home-manager ];
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  home-manager.extraSpecialArgs = { inherit nixpkgs-unstable; };
   
-  home-manager.users.maxim = { pkgs, ... }:
+  home-manager.users.maxim = { pkgs, nixpkgs-unstable, ... }:
   let
     pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
       set -euo pipefail
@@ -19,9 +20,11 @@
    home.stateVersion = "25.05";
    home.file.".config/opencode/opencode.json".text = builtins.toJSON {
      "$schema" = "https://opencode.ai/config.json";
-     plugin = [ "opencode-gemini-auth@latest" ];
+     plugin = [ "opencode-gemini-auth@latest" "opencode-openai-codex-auth@latest"];
    };
    home.packages = with pkgs; [
+      # for ai agents
+      nixpkgs-unstable.legacyPackages.${pkgs.system}.mgrep
      # Archive extraction utility
      unzip
      # Fast line-oriented regex search tool

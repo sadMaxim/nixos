@@ -78,7 +78,10 @@
 
       
       # kitty-scrollback.nvim
-      "alt+]" = "kitty_scrollback_nvim";
+      "alt+[ " = "kitty_scrollback_nvim";
+      
+      # Open opencode in new tab for 99 integration
+      "alt+9" = "new_tab --tab-title opencode opencode";
       
     };
   };

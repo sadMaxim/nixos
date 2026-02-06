@@ -152,7 +152,6 @@
     };
   };
   hardware.graphics.enable = true;
-  programs.adb.enable = true;
   programs.amnezia-vpn.enable = true;
   services.udisks2.enable = true;
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
