@@ -25,13 +25,15 @@
     diffview.enable = true;
     opencode = {
       enable = true;
-      settings = {
-        provider = "kitty";
-        kitty = {
-          target_tab = "OpenCode";
-          command = "opencode";
-        };
-      };
+      # settings = {
+      #   provider = "kitty";
+      #   kitty = {
+      #     target_tab = "OpenCode";
+      #     command = "opencode";
+      #     # Use the absolute path to the socket we forced in Hyprland
+      #     listen_on = "unix:/tmp/kitty"; 
+      #   };
+      # };
     };
     windsurf-nvim = {
       enable = true;
@@ -63,7 +65,10 @@
     
 
   };
-
+  extraPackages = with pkgs; [
+    kitty # This ensures Neovim can call 'kitty @'
+    lsof  # The plugin uses this to find the opencode process
+  ];
 
   highlightOverride = {
    Normal.bg = "none";
