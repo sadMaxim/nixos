@@ -23,18 +23,6 @@
     comment.enable = true;
     lualine.enable = true;
     diffview.enable = true;
-    opencode = {
-      enable = true;
-      package = pkgs.vimPlugins.opencode-nvim;
-      settings = {
-        provider = {
-          enabled = "kitty";
-          kitty = {
-            location = "tab";
-          };
-        };
-      };
-    };
     windsurf-nvim = {
       enable = true;
       settings = {
@@ -193,14 +181,37 @@
     -- capabilities.textDocument.completion.completionItem.snippetSupport = true
   ";
   
-  # extraConfigLua = builtins.readFile ./agents.lua;
+  extraConfigLua = ''
+    vim.opt.runtimepath:prepend("${pkgs.vimPlugins.opencode-nvim}")
+
+    local opencode_lua = "${pkgs.vimPlugins.opencode-nvim}/lua"
+    package.path = table.concat({
+      opencode_lua .. "/?.lua",
+      opencode_lua .. "/?/init.lua",
+      package.path,
+    }, ";")
+
+    if not vim.env.KITTY_LISTEN_ON or vim.env.KITTY_LISTEN_ON == "" then
+      vim.env.KITTY_LISTEN_ON = "unix:/tmp/kitty"
+    end
+
+    vim.g.opencode_opts = {
+      provider = {
+        enabled = "kitty",
+        kitty = {
+          location = "tab",
+        },
+      },
+    }
+  '';
 
   extraConfigVim="
     set clipboard+=unnamedplus
     set tags+=./tags,tags,./.git/tags
   ";
   extraPlugins = with pkgs.vimPlugins; [
-    purescript-vim 
+    purescript-vim
+    opencode-nvim
   ];
 
 }

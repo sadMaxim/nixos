@@ -12,6 +12,7 @@
       # action_alias kitty_scrollback_nvim kitten /nix/store/1dh8q81avy5x54hh5w76mq2sh9zl449i-vim-pack-dir/pack/myNeovimPackages/start/kitty-scrollback.nvim/python/kitty_scrollback_nvim.py
     extraConfig = ''
       action_alias kitty_scrollback_nvim kitten ${pkgs.vimPlugins.kitty-scrollback-nvim}/python/kitty_scrollback_nvim.py
+      listen_on unix:/tmp/kitty
       font_features MapleMono-Regular +ss01 +ss02 +ss04
       font_features MapleMono-Bold +ss01 +ss02 +ss04
       font_features MapleMono-Italic +ss01 +ss02 +ss04
