@@ -25,15 +25,14 @@
     diffview.enable = true;
     opencode = {
       enable = true;
-      # settings = {
-      #   provider = "kitty";
-      #   kitty = {
-      #     target_tab = "OpenCode";
-      #     command = "opencode";
-      #     # Use the absolute path to the socket we forced in Hyprland
-      #     listen_on = "unix:/tmp/kitty"; 
-      #   };
-      # };
+      settings = {
+        provider = {
+          enabled = "kitty";
+          kitty = {
+            location = "tab";
+          };
+        };
+      };
     };
     windsurf-nvim = {
       enable = true;
