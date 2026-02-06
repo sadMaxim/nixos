@@ -20,8 +20,16 @@
    home.stateVersion = "25.05";
    home.file.".config/opencode/opencode.json".text = builtins.toJSON {
      "$schema" = "https://opencode.ai/config.json";
-     plugin = [ "opencode-gemini-auth@latest" "opencode-openai-codex-auth@latest"];
+     plugin = [ "opencode-gemini-auth@latest" "opencode-openai-codex-auth@latest" ];
+     mcp = {
+       mgrep = {
+         type = "local";
+         command = [ "mgrep" "mcp" ];
+         enabled = true;
+       };
+     };
    };
+
    home.packages = with pkgs; [
       # for ai agents
       nixpkgs-unstable.legacyPackages.${pkgs.system}.mgrep
