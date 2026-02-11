@@ -1,10 +1,36 @@
-{ ... }:
+{ config, lib, pkgs, ... }:
+let
+  opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
+    repo_root="$PWD"
+    if [ -n "''${1-}" ] && [ -d "$1" ]; then
+      repo_root="$1"
+    fi
+    config_source="$repo_root/.opencode"
+    config_target="$HOME/.config/opencode"
+
+    if [ -d "$config_source" ]; then
+      mkdir -p "$config_target"
+      for source_path in "$config_source"/*; do
+        if [ -e "$source_path" ]; then
+          target_path="$config_target/$(basename "$source_path")"
+          ln -sfn "$source_path" "$target_path"
+        fi
+      done
+    fi
+
+    exec ${lib.getExe pkgs.opencode} "$@"
+  '';
+in
 {
   programs.opencode = {
     enable = true;
+    package = opencodeWrapped;
     settings = {
       "$schema" = "https://opencode.ai/config.json";
       plugin = [ "opencode-gemini-auth@latest" "opencode-openai-codex-auth@latest" "opencode-antigravity-auth@latest" ];
+      tools = {
+        "project-info" = true;
+      };
       agent = {
         "docs-writer" = {
           description = "Writes and maintains project documentation";
@@ -42,7 +68,4 @@ Look for:
     };
   };
 
-  home.file.".config/opencode/tools/project-info.ts".text = builtins.readFile ./opencode-project-info.ts;
-
-  home.file.".config/opencode/tools/math-add.ts".text = builtins.readFile ./opencode-math-add.ts;
 }

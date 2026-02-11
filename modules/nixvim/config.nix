@@ -70,7 +70,11 @@ in
     web-devicons.enable = true;
     treesitter = {
       enable = true;
-      settings.highlight.enable = true;
+      settings = {
+        highlight.enable = true;
+        indent.enable = true;
+        ensure_installed = [ "python" "lua" "typescript" "javascript" "nix" ];
+      };
     };
     direnv.enable = true;
     hop.enable = true;
@@ -256,32 +260,105 @@ in
       },
     })
     
-    -- 99 Keymaps
-    vim.keymap.set("n", "<leader>9f", function()
-      _99.fill_in_function()
-    end, { desc = "99: Fill in function" })
-    
-    vim.keymap.set("v", "<leader>9v", function()
+    local function _99_find_function_node()
+      local node = vim.treesitter.get_node()
+      while node do
+        local node_type = node:type()
+        if node_type == "function_definition" or node_type == "function_declaration" or node_type == "method_definition" then
+          return node
+        end
+        node = node:parent()
+      end
+      return nil
+    end
+
+    local function _99_debug_node_chain()
+      local node = vim.treesitter.get_node()
+      if not node then
+        vim.notify("99 debug: no treesitter node", vim.log.levels.WARN)
+        return
+      end
+
+      local parts = {}
+      while node do
+        table.insert(parts, node:type())
+        node = node:parent()
+      end
+
+      vim.notify("99 debug: node chain: " .. table.concat(parts, " -> "))
+    end
+
+    local function _99_select_node(node)
+      local start_row, start_col, end_row, end_col = node:range()
+      vim.api.nvim_win_set_cursor(0, { start_row + 1, start_col })
+      vim.cmd("normal! v")
+      local selection_col = math.max(end_col - 1, 0)
+      vim.api.nvim_win_set_cursor(0, { end_row + 1, selection_col })
+    end
+
+    -- 99 Keymaps with fallback for corney keyboard
+    vim.keymap.set("n", "<leader>nf", function()
+      local fn_node = _99_find_function_node()
+      if not fn_node then
+        vim.notify("99: no function under cursor; falling back to prompt", vim.log.levels.WARN)
+        _99.fill_in_function_prompt()
+        return
+      end
+
+      local ok = pcall(_99.fill_in_function)
+      if not ok then
+        _99.fill_in_function_prompt()
+      end
+    end, { desc = "99: Fill in function (fallback to prompt)" })
+
+    vim.keymap.set("v", "<leader>nv", function()
       _99.visual()
     end, { desc = "99: Visual selection" })
-    
-    vim.keymap.set("n", "<leader>9p", function()
-      _99.fill_in_function_prompt()
+
+    vim.keymap.set("n", "<leader>np", function()
+      local fn_node = _99_find_function_node()
+      if not fn_node then
+        vim.notify("99: no function under cursor; use visual mode", vim.log.levels.WARN)
+        return
+      end
+      _99_select_node(fn_node)
+      _99.visual()
     end, { desc = "99: Fill function with prompt" })
-    
-    vim.keymap.set("n", "<leader>9i", function()
+
+    vim.keymap.set("n", "<leader>nd", function()
+      local filetype = vim.bo.filetype
+      local fn_node = _99_find_function_node()
+      if not fn_node then
+        vim.notify("99 debug: no function node; ft=" .. filetype, vim.log.levels.WARN)
+        _99_debug_node_chain()
+        return
+      end
+
+      local start_row, start_col, end_row, end_col = fn_node:range()
+      vim.notify(string.format(
+        "99 debug: ft=%s function=%s [%d:%d - %d:%d]",
+        filetype,
+        fn_node:type(),
+        start_row + 1,
+        start_col + 1,
+        end_row + 1,
+        end_col + 1
+      ))
+    end, { desc = "99: Debug function node" })
+
+    vim.keymap.set("n", "<leader>ni", function()
       _99.info()
     end, { desc = "99: Info" })
-    
-    vim.keymap.set("n", "<leader>9l", function()
+
+    vim.keymap.set("n", "<leader>nl", function()
       _99.view_logs()
     end, { desc = "99: View logs" })
-    
-    vim.keymap.set("v", "<leader>9s", function()
+
+    vim.keymap.set("v", "<leader>ns", function()
       _99.stop_all_requests()
     end, { desc = "99: Stop all requests" })
-    
-    vim.keymap.set("n", "<leader>9r", function()
+
+    vim.keymap.set("n", "<leader>nr", function()
       _99.previous_requests_to_qfix()
     end, { desc = "99: Previous requests to quickfix" })
   '';

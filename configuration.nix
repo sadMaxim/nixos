@@ -108,6 +108,7 @@
     gocryptfs
     pamixer
     openssl
+    gcc
     android-tools
     simple-mtpfs
   ];

@@ -100,10 +100,11 @@
       enable = true;
       commandLineArgs = [
         # High DPI scaling (adjust to your needs: 1.25, 1.5, 2.0)
-        "--force-device-scale-factor=1.8"
+        "--force-device-scale-factor=1.5"
 
         # Enable proper subpixel rendering
-        "--enable-features=UseOzonePlatform,WebContentsForceDark,DefaultEnableFontSubpixelPositioning"
+        "--enable-features=UseOzonePlatform,WebContentsForceDark,DefaultEnableFontSubpixelPositioning,WebUIDarkMode"
+        "--force-dark-mode"
 
         # Prefer RGB subpixel AA (best on most monitors)
         "--force-color-profile=srgb"
@@ -212,6 +213,8 @@
           ", F5, exec, hyprctl --batch 'keyword monitor ${single}; keyword monitor ${edpno}'" 
           ", F6, exec, hyprctl --batch 'keyword monitor ${edp}; keyword monitor ${dpno}'; brightnessctl set 90%" 
           ", F7, exec, hyprctl --batch 'keyword monitor ${edp}; keyword monitor ${dp}'; brightnessctl set 90%" 
+          # Screenshot (select area) to file + clipboard
+          ", F12, exec, sh -lc 'mkdir -p \"$HOME/Pictures/Screenshots\"; file=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim -g \"$(slurp)\" - | tee \"$file\" | wl-copy'"
           # warpd
         ];
         
@@ -258,4 +261,3 @@
       };
     };
 }
-

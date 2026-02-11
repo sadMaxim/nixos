@@ -18,17 +18,6 @@
   in {
 
    home.stateVersion = "25.05";
-   home.file.".config/opencode/opencode.json".text = builtins.toJSON {
-     "$schema" = "https://opencode.ai/config.json";
-     plugin = [ "opencode-gemini-auth@latest" "opencode-openai-codex-auth@latest" ];
-     mcp = {
-       mgrep = {
-         type = "local";
-         command = [ "mgrep" "mcp" ];
-         enabled = true;
-       };
-     };
-   };
 
    home.packages = with pkgs; [
       # for ai agents
@@ -70,7 +59,6 @@
 
      ##### ai
      # Custom tool for AI-assisted code generation/editing
-     opencode
      # AI code completion tool
      codex
      # Command-line interface for the Gemini AI model
@@ -83,6 +71,9 @@
      ##### design
      # 3D creation suite
      blender
+     # Wayland screenshot tools
+     grim
+     slurp
    ];
    
 
@@ -92,6 +83,7 @@
      ./waybar
      ./tmux.nix
      ./programming.nix
+     ./opencode.nix
      # ./ironbar.nix
      nixvim.homeModules.nixvim 
    ];
