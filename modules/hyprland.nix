@@ -103,8 +103,10 @@
         "--force-device-scale-factor=1.5"
 
         # Enable proper subpixel rendering
-        "--enable-features=UseOzonePlatform,WebContentsForceDark,DefaultEnableFontSubpixelPositioning,WebUIDarkMode"
-        "--force-dark-mode"
+        "--enable-features=UseOzonePlatform,DefaultEnableFontSubpixelPositioning"
+
+        # Use normal (thin) top chrome UI
+        "--top-chrome-md=2"
 
         # Prefer RGB subpixel AA (best on most monitors)
         "--force-color-profile=srgb"
