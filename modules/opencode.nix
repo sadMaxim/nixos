@@ -1,21 +1,25 @@
 { config, lib, pkgs, ... }:
 let
   opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
-    repo_root="$PWD"
+    repo_root="$(pwd -P)"
     if [ -n "''${1-}" ] && [ -d "$1" ]; then
-      repo_root="$1"
+      repo_root="$(cd "$1" && pwd -P)"
     fi
-    config_source="$repo_root/.opencode"
-    config_target="$HOME/.config/opencode"
+    tool_source="$repo_root/.opencode/tool"
+    if [ ! -d "$tool_source" ] && [ -d "$repo_root/.opencode/tools" ]; then
+      tool_source="$repo_root/.opencode/tools"
+    fi
+    config_dir="$HOME/.config/opencode"
+    tool_target="$config_dir/tool"
 
-    if [ -d "$config_source" ]; then
-      mkdir -p "$config_target"
-      for source_path in "$config_source"/*; do
-        if [ -e "$source_path" ]; then
-          target_path="$config_target/$(basename "$source_path")"
-          ln -sfn "$source_path" "$target_path"
-        fi
-      done
+    # Clean up all symlinks in global config before linking new tools.
+    if [ -d "$config_dir" ]; then
+      find "$config_dir" -mindepth 1 -type l -exec rm -f {} +
+    fi
+
+    if [ -d "$tool_source" ]; then
+      mkdir -p "$config_dir"
+      ln -sfn "$tool_source" "$tool_target"
     fi
 
     exec ${lib.getExe pkgs.opencode} "$@"
