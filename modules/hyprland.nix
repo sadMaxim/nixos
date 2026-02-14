@@ -103,7 +103,7 @@
         "--force-device-scale-factor=1.5"
 
         # Enable proper subpixel rendering
-        "--enable-features=UseOzonePlatform,DefaultEnableFontSubpixelPositioning"
+        "--enable-features=UseOzonePlatform,DefaultEnableFontSubpixelPositioning,WebUIDarkMode"
 
         # Use normal (thin) top chrome UI
         "--top-chrome-md=2"
