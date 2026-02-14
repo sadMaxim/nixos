@@ -1,5 +1,23 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 let
+  opencodeDefaultPackage = lib.attrByPath [ "packages" pkgs.system "default" ] null inputs.opencode;
+  opencodeNamedPackage = lib.attrByPath [ "packages" pkgs.system "opencode" ] null inputs.opencode;
+  opencodePackage =
+    if opencodeDefaultPackage != null then
+      opencodeDefaultPackage
+    else if opencodeNamedPackage != null then
+      opencodeNamedPackage
+    else
+      throw "opencode flake does not expose packages.${pkgs.system}.default or packages.${pkgs.system}.opencode";
+  opencodePatchedPackage = opencodePackage.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace packages/script/src/index.ts \
+        --replace-fail \
+        "if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {" \
+        "if (false && !semver.satisfies(process.versions.bun, expectedBunVersionRange)) {"
+    '';
+  });
+
   opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
     set -euo pipefail
 
@@ -15,7 +33,7 @@ let
       export OPENCODE_CONFIG_DIR="$repo_root/.opencode"
     fi
 
-    exec ${lib.getExe pkgs.opencode} "$@"
+    exec ${lib.getExe opencodePatchedPackage} "$@"
   '';
 in
 {
