@@ -150,11 +150,12 @@
      age
 
      ##### ai
-     # Custom tool for AI-assisted code generation/editing
-      # AI code completion tool
-      codexCli
-     # Command-line interface for the Gemini AI model
-     gemini-cli
+      # Custom tool for AI-assisted code generation/editing
+       # AI code completion tool
+       codexCli
+      inputs.antigravity-nix.packages.${pkgs.system}.default
+      # Command-line interface for the Gemini AI model
+      gemini-cli
 
      ##### databases
      # Web-based PostgreSQL client
