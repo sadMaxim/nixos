@@ -33,6 +33,60 @@ let
       export OPENCODE_CONFIG_DIR="$repo_root/.opencode"
     fi
 
+    has_port=false
+    port_value=""
+    prev=""
+    for arg in "$@"; do
+      if [ "$prev" = "--port" ]; then
+        has_port=true
+        port_value="$arg"
+        break
+      fi
+      case "$arg" in
+        --port=*)
+          has_port=true
+          port_value="''${arg#--port=}"
+          break
+          ;;
+      esac
+      prev="$arg"
+    done
+
+    # Ensure every repo has a local opencode port for nvim integration.
+    # If caller didn't pass --port, pick a currently free one.
+    if [ "$has_port" = false ]; then
+      is_port_in_use() {
+        local p="$1"
+        if command -v ss >/dev/null 2>&1; then
+          ss -ltn "( sport = :$p )" 2>/dev/null | grep -q ":$p"
+          return $?
+        fi
+        if command -v lsof >/dev/null 2>&1; then
+          lsof -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1
+          return $?
+        fi
+        return 1
+      }
+
+      for _ in $(seq 1 200); do
+        candidate="$((20000 + (RANDOM % 30000)))"
+        if ! is_port_in_use "$candidate"; then
+          port_value="$candidate"
+          break
+        fi
+      done
+
+      if [ -z "$port_value" ]; then
+        repo_hash="$(printf '%s' "$repo_root" | cksum | cut -d' ' -f1)"
+        port_value="$((20000 + (repo_hash % 20000)))"
+      fi
+
+      set -- --port "$port_value" "$@"
+    fi
+
+    mkdir -p "$repo_root/.opencode"
+    printf '%s\n' "$port_value" > "$repo_root/.opencode/nvim-port"
+
     exec ${lib.getExe opencodePatchedPackage} "$@"
   '';
 in
@@ -50,6 +104,12 @@ in
     text = ''
       {
         "$schema": "https://opencode.ai/config.json",
+        "plugin": [
+          "opencode-antigravity-auth@1.5.1",
+          "opencode-google-antigravity-auth",
+          "opencode-openai-codex-auth",
+          "@noodlbox/opencode-plugin"
+        ],
         "tools": {
           "websearch": false,
           "grep": false,

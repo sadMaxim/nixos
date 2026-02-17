@@ -1,58 +1,4 @@
 {pkgs, ...}:
-let
-  # Build 99 plugin from GitHub
-  _99-plugin = pkgs.vimUtils.buildVimPlugin {
-    pname = "99-nvim";
-    version = "2026-02-06";
-    src = pkgs.fetchFromGitHub {
-      owner = "ThePrimeagen";
-      repo = "99";
-      rev = "0fb3b8b2d032289ea7088a37161e1c50bdfccfa9";
-      sha256 = "0c7pfdvkqv3izfklc98ka20f90lpn1j1w7xzp6gkp03rm1hxi7gc";
-    };
-    doCheck = false;
-  };
-  
-  # Kitty provider lua code
-  kittyProviderLua = pkgs.writeText "99-kitty-provider.lua" ''
-    local BaseProvider = require("99.providers").OpenCodeProvider
-    
-    local KittySendTextProvider = setmetatable({}, { __index = BaseProvider })
-    
-    function KittySendTextProvider._build_command(_, query, request)
-      local model = request.context.model
-      local tmp_file = request.context.tmp_file
-      
-      -- Escape the query for shell safety
-      local escaped_query = query:gsub('"', '\\\\"'):gsub("\n", "\\\\n")
-      
-      -- Create script that:
-      -- 1. Sends query to kitty tab for visibility
-      -- 2. Runs opencode to get response for 99
-      -- 3. Writes response to temp file
-      local script = string.format([[
-        # Send to kitty tab for visibility (match by title "opencode")
-        kitty @ --to unix:/tmp/kitty send-text --match title:opencode "%s" 2>/dev/null || true
-        
-        # Run opencode to get response for 99
-        opencode run -m %s --print %s > %s 2>&1
-      ]], 
-        escaped_query,
-        model,
-        vim.fn.shellescape(query),
-        tmp_file
-      )
-      
-      return { "sh", "-c", script }
-    end
-    
-    function KittySendTextProvider._get_provider_name()
-      return "KittySendTextProvider"
-    end
-    
-    return KittySendTextProvider
-  '';
-in
 {
   globals = {
     mapleader = " ";
@@ -108,12 +54,15 @@ in
     };
     nvim-autopairs.enable = true;
     lazygit.enable = true;
-    
-
+    snacks = {
+      enable = true;
+      settings = {
+        terminal.enabled = true;
+        input.enabled = true;
+        select.enabled = true;
+      };
+    };
   };
-  extraPackages = with pkgs; [
-    kitty # For 99 kitty provider integration
-  ];
 
   highlightOverride = {
    Normal.bg = "none";
@@ -134,15 +83,15 @@ in
     action = ":HopWord<CR>";
    }
    {
-    mode = "n"; 
-    key = "<C-j>";
-    action = ":Telescope find_files<CR>";
-   }
-   {
-    mode = "n"; 
-    key = "<C-b>";
-    action = ":Telescope buffers<CR>";
-   }
+     mode = "n"; 
+     key = "<C-j>";
+     action = ":Telescope find_files<CR>";
+    }
+    {
+     mode = "n"; 
+     key = "<C-b>";
+     action = ":Telescope buffers<CR>";
+    }
    {
     mode = "n"; 
     key = "<C-g>";
@@ -174,15 +123,20 @@ in
     action = ":bd!<CR>";
    }
    {
-    mode = "n"; 
-    key = "LG";
-    action = ":LazyGit<CR>";
-   }
-   {
-    mode = "n"; 
-    key = "K";
-    action = ":lua vim.lsp.buf.hover()<CR>";
-   }
+     mode = "n"; 
+     key = "LG";
+     action = ":LazyGit<CR>";
+    }
+    {
+     mode = "n";
+     key = "diff";
+     action = ":lua local view = require('diffview.lib').get_current_view(); if view then vim.cmd('DiffviewClose') else vim.cmd('DiffviewOpen') end<CR>";
+    }
+    {
+     mode = "n"; 
+     key = "K";
+     action = ":lua vim.lsp.buf.hover()<CR>";
+    }
    {
     mode = "n"; 
     key = "gd";
@@ -199,10 +153,47 @@ in
       key = "<Tab>";
       action = ":lua vim.lsp.buf.code_action()<CR>";
     }
-    {
+     {
       mode = "n";
       key = "<Tab>";
       action = ":lua vim.lsp.buf.code_action({ context = { only = { 'source' } } })<CR>";
+    }
+    # OpenCode keymaps
+    {
+      mode = "n";
+      key = "code";
+      action = "<cmd>lua _G.opencode_toggle()<CR>";
+      options = { silent = true; desc = "OpenCode Toggle"; };
+    }
+    {
+      mode = "n";
+      key = "ask";
+      action = "<cmd>lua _G.opencode_ask()<CR>";
+      options = { silent = true; desc = "OpenCode Ask"; };
+    }
+    {
+      mode = "n";
+      key = "rev";
+      action = "<cmd>lua _G.opencode_review()<CR>";
+      options = { silent = true; desc = "OpenCode Review"; };
+    }
+    {
+      mode = "n";
+      key = "sea";
+      action = "<cmd>lua _G.opencode_search()<CR>";
+      options = { silent = true; desc = "OpenCode Research"; };
+    }
+    {
+      mode = "v";
+      key = "ask";
+      action = "<cmd>lua _G.opencode_ask()<CR>";
+      options = { silent = true; desc = "OpenCode Ask (Visual)"; };
+    }
+    {
+      mode = "v";
+      key = "rev";
+      action = "<cmd>lua _G.opencode_review()<CR>";
+      options = { silent = true; desc = "OpenCode Review (Visual)"; };
     }
    # Windsurf keymaps
    
@@ -233,143 +224,149 @@ in
     gdefault = true;
     scrolloff = 5;
   };
-  extraConfigLuaPost="
+  extraConfigLuaPost = ''
     vim.opt.showtabline = 0
     -- capabilities.textDocument.completion.completionItem.snippetSupport = true
-  ";
-  
-  extraConfigLua = ''
-    -- 99 Plugin Setup with Kitty Provider
-    local KittyProvider = dofile("${kittyProviderLua}")
-    
-    local _99 = require("99")
-    _99.setup({
-      logger = {
-        level = _99.DEBUG,
-        path = "/tmp/" .. vim.fs.basename(vim.uv.cwd()) .. ".99.debug",
-        print_on_error = true,
-      },
-      provider = KittyProvider,
-      model = "opencode/claude-sonnet-4-5",
-      completion = {
-        source = "cmp",
-        custom_rules = {},
-      },
-      md_files = {
-        "AGENT.md",
-      },
-    })
-    
-    local function _99_find_function_node()
-      local node = vim.treesitter.get_node()
-      while node do
-        local node_type = node:type()
-        if node_type == "function_definition" or node_type == "function_declaration" or node_type == "method_definition" then
-          return node
+
+    local function kitty_cmd_prefix()
+      local socket = vim.env.KITTY_LISTEN_ON or ""
+      if socket == "" then
+        local sockets = vim.fn.glob("/tmp/kitty*", true, true)
+        if #sockets > 0 then
+          socket = "unix:" .. sockets[1]
         end
-        node = node:parent()
       end
-      return nil
+
+      local cmd_prefix = "kitty @ "
+      if socket ~= "" then
+        cmd_prefix = cmd_prefix .. "--to " .. socket .. " "
+      end
+      return cmd_prefix
     end
 
-    local function _99_debug_node_chain()
-      local node = vim.treesitter.get_node()
-      if not node then
-        vim.notify("99 debug: no treesitter node", vim.log.levels.WARN)
-        return
+    local function read_repo_port()
+      local port_file = vim.fs.find(".opencode/nvim-port", {
+        upward = true,
+        path = vim.fn.getcwd(),
+        type = "file",
+      })[1]
+
+      if not port_file then
+        return nil, "No .opencode/nvim-port file found. Start opencode in this repo first."
       end
 
-      local parts = {}
-      while node do
-        table.insert(parts, node:type())
-        node = node:parent()
+      local lines = vim.fn.readfile(port_file)
+      local port = tonumber(lines[1] or "")
+      if not port then
+        return nil, "Invalid port in " .. port_file
       end
 
-      vim.notify("99 debug: node chain: " .. table.concat(parts, " -> "))
+      return port
     end
 
-    local function _99_select_node(node)
-      local start_row, start_col, end_row, end_col = node:range()
-      vim.api.nvim_win_set_cursor(0, { start_row + 1, start_col })
-      vim.cmd("normal! v")
-      local selection_col = math.max(end_col - 1, 0)
-      vim.api.nvim_win_set_cursor(0, { end_row + 1, selection_col })
+    local function sync_opencode_port()
+      local port, err = read_repo_port()
+      if not port then
+        return nil, err
+      end
+
+      require("opencode.config").opts.port = port
+      return port
     end
 
-    -- 99 Keymaps with fallback for corney keyboard
-    vim.keymap.set("n", "<leader>nf", function()
-      local fn_node = _99_find_function_node()
-      if not fn_node then
-        vim.notify("99: no function under cursor; falling back to prompt", vim.log.levels.WARN)
-        _99.fill_in_function_prompt()
+    local function is_port_open(port)
+      local ok, chan = pcall(vim.fn.sockconnect, "tcp", ("127.0.0.1:%d"):format(port), { rpc = false, timeout = 200 })
+      if ok and chan and chan ~= 0 then
+        pcall(vim.fn.chanclose, chan)
+        return true
+      end
+      return false
+    end
+
+    local kitty_provider = {
+      name = 'kitty',
+      start = function()
+        local port, err = sync_opencode_port()
+        if not port then
+          vim.notify(err, vim.log.levels.WARN, { title = "opencode" })
+          return
+        end
+
+        if is_port_open(port) then
+          return
+        end
+
+        local cmd_prefix = kitty_cmd_prefix()
+        local focused = os.execute(cmd_prefix .. 'focus-tab --match title:opencode >/dev/null 2>&1')
+        if focused then
+          os.execute(cmd_prefix .. 'send-text --match title:opencode ' .. vim.fn.shellescape('opencode --port ' .. port .. '\r') .. ' >/dev/null 2>&1')
+          return
+        end
+
+        local cwd = vim.fn.getcwd()
+        os.execute(
+          cmd_prefix
+            .. 'launch --type=tab --tab-title=opencode --cwd='
+            .. vim.fn.shellescape(cwd)
+            .. ' opencode --port '
+            .. port
+            .. ' >/dev/null 2>&1 &'
+        )
+      end,
+    }
+    kitty_provider.toggle = function() kitty_provider.start() end
+    kitty_provider.show = function()
+      os.execute(kitty_cmd_prefix() .. 'focus-tab --match title:opencode >/dev/null 2>&1')
+    end
+    kitty_provider.health = function()
+      if vim.fn.executable('kitty') == 0 then
+        return '`kitty` is not available in PATH.'
+      end
+      return true
+    end
+
+    local opencode_config = require('opencode.config')
+    opencode_config.provider = kitty_provider
+
+    _G.opencode_toggle = function()
+      local _, err = sync_opencode_port()
+      if err then
+        vim.notify(err, vim.log.levels.WARN, { title = "opencode" })
         return
       end
+      require('opencode').toggle()
+    end
 
-      local ok = pcall(_99.fill_in_function)
-      if not ok then
-        _99.fill_in_function_prompt()
-      end
-    end, { desc = "99: Fill in function (fallback to prompt)" })
-
-    vim.keymap.set("v", "<leader>nv", function()
-      _99.visual()
-    end, { desc = "99: Visual selection" })
-
-    vim.keymap.set("n", "<leader>np", function()
-      local fn_node = _99_find_function_node()
-      if not fn_node then
-        vim.notify("99: no function under cursor; use visual mode", vim.log.levels.WARN)
+    _G.opencode_ask = function(default)
+      local _, err = sync_opencode_port()
+      if err then
+        vim.notify(err, vim.log.levels.WARN, { title = "opencode" })
         return
       end
-      _99_select_node(fn_node)
-      _99.visual()
-    end, { desc = "99: Fill function with prompt" })
+      require('opencode').ask(default)
+    end
 
-    vim.keymap.set("n", "<leader>nd", function()
-      local filetype = vim.bo.filetype
-      local fn_node = _99_find_function_node()
-      if not fn_node then
-        vim.notify("99 debug: no function node; ft=" .. filetype, vim.log.levels.WARN)
-        _99_debug_node_chain()
+    _G.opencode_review = function()
+      local _, err = sync_opencode_port()
+      if err then
+        vim.notify(err, vim.log.levels.WARN, { title = "opencode" })
         return
       end
+      require('opencode').prompt('review', { submit = true })
+    end
 
-      local start_row, start_col, end_row, end_col = fn_node:range()
-      vim.notify(string.format(
-        "99 debug: ft=%s function=%s [%d:%d - %d:%d]",
-        filetype,
-        fn_node:type(),
-        start_row + 1,
-        start_col + 1,
-        end_row + 1,
-        end_col + 1
-      ))
-    end, { desc = "99: Debug function node" })
-
-    vim.keymap.set("n", "<leader>ni", function()
-      _99.info()
-    end, { desc = "99: Info" })
-
-    vim.keymap.set("n", "<leader>nl", function()
-      _99.view_logs()
-    end, { desc = "99: View logs" })
-
-    vim.keymap.set("v", "<leader>ns", function()
-      _99.stop_all_requests()
-    end, { desc = "99: Stop all requests" })
-
-    vim.keymap.set("n", "<leader>nr", function()
-      _99.previous_requests_to_qfix()
-    end, { desc = "99: Previous requests to quickfix" })
+    _G.opencode_search = function()
+      _G.opencode_ask('Research: ')
+    end
   '';
-
+  
   extraConfigVim="
     set clipboard+=unnamedplus
     set tags+=./tags,tags,./.git/tags
   ";
   extraPlugins = with pkgs.vimPlugins; [
     purescript-vim
-    _99-plugin
+    opencode-nvim
   ];
 
 }
