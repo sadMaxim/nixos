@@ -18,6 +18,26 @@ let
     '';
   });
 
+  opencodeConfigText = ''
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "plugin": [
+        "opencode-antigravity-auth@1.5.1",
+        "opencode-google-antigravity-auth",
+        "opencode-openai-codex-auth",
+        "@noodlbox/opencode-plugin"
+      ],
+      "tools": {
+        "websearch": false,
+        "grep": false,
+        "glob": false,
+        "mgrep": true
+      }
+    }
+  '';
+
+  opencodeConfigTemplate = pkgs.writeText "opencode.json" opencodeConfigText;
+
   opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
     set -euo pipefail
 
@@ -28,8 +48,8 @@ let
       repo_root="$(pwd -P)"
     fi
 
-    # If the repo defines .opencode/, prefer it
-    if [ -d "$repo_root/.opencode" ]; then
+    # If the repo defines .opencode/opencode.json, prefer it
+    if [ -f "$repo_root/.opencode/opencode.json" ]; then
       export OPENCODE_CONFIG_DIR="$repo_root/.opencode"
     fi
 
@@ -99,24 +119,23 @@ in
     # ~/.config/opencode/opencode.json
   };
 
-  xdg.configFile."opencode/opencode.json" = {
-    force = true;
-    text = ''
-      {
-        "$schema": "https://opencode.ai/config.json",
-        "plugin": [
-          "opencode-antigravity-auth@1.5.1",
-          "opencode-google-antigravity-auth",
-          "opencode-openai-codex-auth",
-          "@noodlbox/opencode-plugin"
-        ],
-        "tools": {
-          "websearch": false,
-          "grep": false,
-          "glob": false,
-          "mgrep": true
-        }
-      }
-    '';
-  };
+  home.activation.ensureMutableOpencodeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    config_dir="$HOME/.config/opencode"
+    config_file="$config_dir/opencode.json"
+
+    mkdir -p "$config_dir"
+
+    if [ -L "$config_file" ]; then
+      target="$(readlink -f "$config_file" || true)"
+      case "$target" in
+        /nix/store/*)
+          rm -f "$config_file"
+          ;;
+      esac
+    fi
+
+    if [ ! -f "$config_file" ]; then
+      install -m 0644 "${opencodeConfigTemplate}" "$config_file"
+    fi
+  '';
 }

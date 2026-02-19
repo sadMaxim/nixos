@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
     ###idle
     services.hypridle = {
@@ -6,23 +6,44 @@
       settings = {
         listener = [
           {
-            timeout = 100;
+            timeout = 360;
             on-timeout = "pidof hyprlock || hyprlock";
             on-resume = "notify-send 'Welcome back!'";
           }
           {
-            timeout = 1800;
+            timeout = 4000;
             on-timeout = "hyprctl dispatch dpms off";
             on-resume = "hyprctl dispatch dpms on";
           }
         ];
       };
     };
+   
+    ###hyprpaper
+    services.hyprpaper =
+    let
+      wallpaper = pkgs.fetchurl {
+        url = "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg";
+        # Run once with fake hash to get the correct one
+        sha256 = "sha256-2S9foYfeuFQOPA+Nqkk7Zvlcz+P9mOBzUQ+I4+kLeAc=";
+      };
+    in {
+      enable = true;
+
+      settings = {
+        preload = [ "${wallpaper}" ];
+
+        wallpaper = [ ",${wallpaper}" ];
+
+        splash = false;
+      };
+    };
+
+    
 
     home.packages = with pkgs; [
       wofi
       wev
-      hyprpaper
       rose-pine-hyprcursor
     ];
     
@@ -103,14 +124,6 @@
         "--top-chrome-md=2"
       ];
     };
-
-
-
-    ### wallpaper
-    xdg.configFile."hypr/hyprpaper.conf".text = ''
-      preload = ${../beautifulmountainscape.jpg}
-      wallpaper = , ${../beautifulmountainscape.jpg}
-    '';
 
 
     wayland.windowManager.hyprland =
@@ -218,6 +231,11 @@
           "col.inactive_border" = "rgba(595959aa)";
           layout = "dwindle";
         };
+
+        misc = {
+          disable_hyprland_logo = true;
+          disable_splash_rendering = true;
+        };
         
         # Decoration
         decoration = {
@@ -240,7 +258,6 @@
         
         # Autostart
         exec-once = [
-          "hyprpaper"
           "hyprctl setcursor rose-pine-hyprcursor 28"
         ];
       };
