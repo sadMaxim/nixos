@@ -22,8 +22,7 @@ let
     {
       "$schema": "https://opencode.ai/config.json",
       "plugin": [
-        "opencode-antigravity-auth@1.5.1",
-        "opencode-google-antigravity-auth",
+        "opencode-antigravity-auth@latest",
         "opencode-openai-codex-auth",
         "@noodlbox/opencode-plugin"
       ],
@@ -53,28 +52,61 @@ let
       export OPENCODE_CONFIG_DIR="$repo_root/.opencode"
     fi
 
+    # Antigravity auth can print status lines while OpenCode redraws the TUI,
+    # which shows up as visual artifacts. Keep plugin logs quiet by default.
+    : "''${OPENCODE_ANTIGRAVITY_QUIET:=1}"
+    export OPENCODE_ANTIGRAVITY_QUIET
+
     has_port=false
     port_value=""
+    first_positional=""
+    info_only=false
     prev=""
     for arg in "$@"; do
       if [ "$prev" = "--port" ]; then
         has_port=true
         port_value="$arg"
+        prev=""
         break
       fi
       case "$arg" in
+        -h|--help|-v|--version)
+          info_only=true
+          ;;
         --port=*)
           has_port=true
           port_value="''${arg#--port=}"
           break
           ;;
+        --*)
+          prev="$arg"
+          continue
+          ;;
+        -*)
+          continue
+          ;;
+        *)
+          if [ -z "$first_positional" ]; then
+            first_positional="$arg"
+          fi
+          ;;
       esac
-      prev="$arg"
+      prev=""
     done
+
+    # Keep subcommands (auth, models, run, etc.) untouched. Inject --port
+    # only for the default TUI command, where first positional arg is either
+    # absent or treated as [project].
+    is_subcommand=false
+    case "$first_positional" in
+      completion|acp|mcp|attach|run|debug|auth|agent|upgrade|uninstall|serve|web|models|stats|export|import|github|pr|session|db)
+        is_subcommand=true
+        ;;
+    esac
 
     # Ensure every repo has a local opencode port for nvim integration.
     # If caller didn't pass --port, pick a currently free one.
-    if [ "$has_port" = false ]; then
+    if [ "$has_port" = false ] && [ "$is_subcommand" = false ] && [ "$info_only" = false ]; then
       is_port_in_use() {
         local p="$1"
         if command -v ss >/dev/null 2>&1; then
@@ -104,8 +136,10 @@ let
       set -- --port "$port_value" "$@"
     fi
 
-    mkdir -p "$repo_root/.opencode"
-    printf '%s\n' "$port_value" > "$repo_root/.opencode/nvim-port"
+    if [ -n "$port_value" ]; then
+      mkdir -p "$repo_root/.opencode"
+      printf '%s\n' "$port_value" > "$repo_root/.opencode/nvim-port"
+    fi
 
     exec ${lib.getExe opencodePatchedPackage} "$@"
   '';

@@ -190,6 +190,18 @@
       options = { silent = true; desc = "OpenCode Ask (Visual)"; };
     }
     {
+      mode = "n";
+      key = "this";
+      action = "<cmd>lua _G.opencode_ask()<CR>";
+      options = { silent = true; desc = "OpenCode Ask (this)"; };
+    }
+    {
+      mode = "v";
+      key = "this";
+      action = "<cmd>lua _G.opencode_ask()<CR>";
+      options = { silent = true; desc = "OpenCode Ask (this visual)"; };
+    }
+    {
       mode = "v";
       key = "rev";
       action = "<cmd>lua _G.opencode_review()<CR>";
