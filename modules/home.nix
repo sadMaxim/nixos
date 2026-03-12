@@ -148,6 +148,8 @@
      brave
      # Age encryption tool
      age
+     # Image manipulation tool
+     imagemagick
 
      ##### ai
       # Custom tool for AI-assisted code generation/editing
@@ -155,7 +157,7 @@
        codexCli
       inputs.antigravity-nix.packages.${pkgs.system}.default
       # Command-line interface for the Gemini AI model
-      gemini-cli
+       unstable.gemini-cli
 
      ##### databases
      # Web-based PostgreSQL client

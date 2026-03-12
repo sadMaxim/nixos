@@ -62,6 +62,10 @@
         select.enabled = true;
       };
     };
+    image = {
+      enable = true;
+      backend = "kitty";
+    };
   };
 
   highlightOverride = {
