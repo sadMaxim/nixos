@@ -36,6 +36,7 @@ let
   '';
 
   opencodeConfigTemplate = pkgs.writeText "opencode.json" opencodeConfigText;
+  opencodeOverlayConfigTemplate = pkgs.writeText "opencode.jsonc" opencodeConfigText;
 
   opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
     set -euo pipefail
@@ -156,6 +157,7 @@ in
   home.activation.ensureMutableOpencodeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     config_dir="$HOME/.config/opencode"
     config_file="$config_dir/opencode.json"
+    overlay_file="$config_dir/opencode.jsonc"
 
     mkdir -p "$config_dir"
 
@@ -171,5 +173,16 @@ in
     if [ ! -f "$config_file" ]; then
       install -m 0644 "${opencodeConfigTemplate}" "$config_file"
     fi
+
+    if [ -L "$overlay_file" ]; then
+      target="$(readlink -f "$overlay_file" || true)"
+      case "$target" in
+        /nix/store/*)
+          rm -f "$overlay_file"
+          ;;
+      esac
+    fi
+
+    install -m 0644 "${opencodeOverlayConfigTemplate}" "$overlay_file"
   '';
 }
