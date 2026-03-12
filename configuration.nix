@@ -224,9 +224,10 @@
   '';
 
 
-nix = {
+  nix = {
     settings = {
       auto-optimise-store = true;
+      trusted-users = [ "root" "maxim" ];
       experimental-features = [
         "nix-command"
         "flakes"
