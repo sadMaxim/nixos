@@ -181,17 +181,23 @@
       action = "<cmd>lua _G.opencode_review()<CR>";
       options = { silent = true; desc = "OpenCode Review"; };
     }
-    {
-      mode = "n";
-      key = "sea";
-      action = "<cmd>lua _G.opencode_search()<CR>";
-      options = { silent = true; desc = "OpenCode Research"; };
-    }
-    {
-      mode = "v";
-      key = "ask";
-      action = "<cmd>lua _G.opencode_ask()<CR>";
-      options = { silent = true; desc = "OpenCode Ask (Visual)"; };
+     {
+       mode = "n";
+       key = "sea";
+       action = "<cmd>lua _G.opencode_search()<CR>";
+       options = { silent = true; desc = "OpenCode Research"; };
+     }
+     {
+       mode = "n";
+       key = "cu";
+       action = "<cmd>lua _G.copy_file_path_with_line()<CR>";
+       options = { silent = true; desc = "Copy file path with line number"; };
+     }
+     {
+       mode = "v";
+       key = "ask";
+       action = "<cmd>lua _G.opencode_ask()<CR>";
+       options = { silent = true; desc = "OpenCode Ask (Visual)"; };
     }
     {
       mode = "n";
@@ -372,7 +378,21 @@
     end
 
     _G.opencode_search = function()
-      _G.opencode_ask('Research: ')
+      _G.opencode_ask("Research: ")
+    end
+
+    _G.copy_file_path_with_line = function()
+      local path = vim.fn.expand("%:p")
+      local line = vim.fn.line(".")
+
+      if path == "" then
+        vim.notify("No file path available for this buffer.", vim.log.levels.WARN, { title = "nvim" })
+        return
+      end
+
+      local location = path .. ":" .. line
+      vim.fn.setreg("+", location)
+      vim.notify("Copied: " .. location, vim.log.levels.INFO, { title = "nvim" })
     end
   '';
   
