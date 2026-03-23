@@ -57,6 +57,9 @@
       "alt+3" = "goto_tab 3";
       "alt+4" = "goto_tab 4";
       "alt+5" = "goto_tab 5";
+      "alt+6" = "goto_tab 6";
+      "alt+left" = "move_tab_backward";
+      "alt+right" = "move_tab_forward";
 
       ## Unbind
       "ctrl+-" = "change_font_size all -1.0";
