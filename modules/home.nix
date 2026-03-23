@@ -144,10 +144,12 @@
      nodejs
      # Process file descriptor lister
      lsof
-     # Privacy-focused web browser
-     brave
-     # Age encryption tool
-     age
+      # Privacy-focused web browser
+      brave
+      # Visual Studio Code editor
+      vscode
+      # Age encryption tool
+      age
      # Image manipulation tool
      imagemagick
 
