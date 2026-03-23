@@ -390,7 +390,7 @@
         return
       end
 
-      local location = path .. ":" .. line
+      local location = path .. " L" .. line
       vim.fn.setreg("+", location)
       vim.notify("Copied: " .. location, vim.log.levels.INFO, { title = "nvim" })
     end
