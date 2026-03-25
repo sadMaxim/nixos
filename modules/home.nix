@@ -146,10 +146,8 @@
      lsof
       # Privacy-focused web browser
       brave
-      # Visual Studio Code editor
-      vscode
-      # Age encryption tool
-      age
+       # Age encryption tool
+       age
      # Image manipulation tool
      imagemagick
 
@@ -193,6 +191,12 @@
       direnv = {
         enable = true;
         nix-direnv.enable = true;
+      };
+      vscode = {
+        enable = true;
+        profiles.default.extensions = with pkgs.vscode-extensions; [
+          saoudrizwan.claude-dev
+        ];
       };
       # git
       git = {

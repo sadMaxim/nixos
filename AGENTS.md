@@ -4,4 +4,5 @@
 - User asks about current/latest information → use `mgrep --web --answer "query"`.
 - User asks "what is", "how to", or any question requiring online lookup → use `mgrep --web --answer "query"`.
 - You need to find files, code, or content in the codebase → use `mgrep "query"`.
+- This is a public repository; be careful never to add secrets, credentials, tokens, or other sensitive values here.
 - Do not use built-in `websearch`, `grep`, or `glob` tools. Use `mgrep` instead.
