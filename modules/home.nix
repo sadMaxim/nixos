@@ -106,6 +106,19 @@
         --bind 127.0.0.1 --listen 8081 \
         --url "$url" "$@"
     '';
+    sshUtils = pkgs.writeShellApplication {
+      name = "ssh_utils";
+      runtimeInputs = [
+        pkgs.git
+        pkgs.inotify-tools
+        pkgs.openssh
+        pkgs.python3
+        pkgs.rsync
+      ];
+      text = ''
+        exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
+      '';
+    };
   in {
 
    home.stateVersion = "25.05";
@@ -146,8 +159,8 @@
      lsof
       # Privacy-focused web browser
       brave
-       # Age encryption tool
-       age
+        # Age encryption tool
+        age
      # Image manipulation tool
      imagemagick
 
@@ -159,11 +172,14 @@
       # Command-line interface for the Gemini AI model
        unstable.gemini-cli
 
-     ##### databases
-     # Web-based PostgreSQL client
-     pgwebWrapped
+      ##### databases
+      # Web-based PostgreSQL client
+      pgwebWrapped
 
-     ##### design
+      ##### ssh tools
+      sshUtils
+
+      ##### design
      # 3D creation suite
      blender
      # Wayland screenshot tools
