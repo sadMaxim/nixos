@@ -225,19 +225,6 @@
 
 
   nix = {
-    distributedBuilds = true;
-
-    buildMachines = [
-      {
-        hostName = "vast-builder";
-        protocol = "ssh-ng";
-        system = "x86_64-linux";
-        maxJobs = 8;
-        speedFactor = 2;
-        supportedFeatures = [ "big-parallel" ];
-      }
-    ];
-
     settings = {
       auto-optimise-store = true;
       builders-use-substitutes = true;

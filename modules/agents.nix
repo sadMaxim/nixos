@@ -1,0 +1,61 @@
+{ pkgs, inputs, nixpkgs-unstable, ... }:
+let
+  unstable = nixpkgs-unstable.legacyPackages.${pkgs.system};
+  mgrepVersion = "0.1.10";
+  mgrepSrc = unstable.fetchFromGitHub {
+    owner = "mixedbread-ai";
+    repo = "mgrep";
+    tag = "v${mgrepVersion}";
+    hash = "sha256-Njs0h2Roqm9xK8TV7BqrR5EwpK+ONNl3ct1fHU0UZEY=";
+  };
+  mgrepPnpmDeps = unstable.fetchPnpmDeps {
+    pname = "mgrep";
+    version = mgrepVersion;
+    src = mgrepSrc;
+    fetcherVersion = 2;
+    hash = "sha256-qNsYMp25OAbbv+K7qvNRB+7QzzrgtrKQkUoe9IMIR5c=";
+  };
+  mgrepLatest = unstable.mgrep.overrideAttrs (_: {
+    version = mgrepVersion;
+    src = mgrepSrc;
+    pnpmDeps = mgrepPnpmDeps;
+  });
+  codexCli = inputs.codex-cli-nix.packages.${pkgs.system}.default;
+in
+{
+  home.packages = [
+    # for ai agents
+    mgrepLatest
+    codexCli
+  ];
+
+  home.file.".codex/config.toml".text = ''
+    #:schema https://developers.openai.com/codex/config-schema.json
+
+    approval_policy = "on-request"
+    sandbox_mode = "workspace-write"
+    web_search = "cached"
+
+    [mcp_servers.mgrep]
+    command = "${mgrepLatest}/bin/mgrep"
+    args = ["mcp"]
+
+    [features]
+    shell_tool = true
+    unified_exec = true
+  '';
+
+  home.file.".codex/AGENTS.md".text = ''
+    # Tooling Preferences
+
+    Prefer `mgrep` for search when it is available. Use natural-language
+    queries that describe what you are looking for.
+
+    For local codebase discovery, use `mgrep "<query>" [path]` first. If `mgrep`
+    fails or is unavailable, fall back to `rg` and other standard search tools.
+
+    For current external information, use `mgrep --web --answer "<query>"`
+    first. If that fails or is unavailable, fall back to Codex's native web
+    search when it is enabled.
+  '';
+}

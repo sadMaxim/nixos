@@ -264,16 +264,44 @@ class SSHUtils:
 
         try:
             # Get git tracked files (NUL-delimited for safety)
-            result = subprocess.run(
+            git_result = subprocess.run(
                 ['git', 'ls-files', '-z'],
                 cwd=self.local_folder,
                 capture_output=True,
                 check=True
             )
 
-            # Create temporary file with git tracked files
+            # Filter out tracked files missing from the working tree.
+            tracked_entries = [entry for entry in git_result.stdout.split(b'\0') if entry]
+            existing_entries = []
+            missing_entries = []
+
+            for entry in tracked_entries:
+                rel_path = entry.decode('utf-8', errors='surrogateescape')
+                abs_path = self.local_folder / rel_path
+                if os.path.lexists(abs_path):
+                    existing_entries.append(entry)
+                else:
+                    missing_entries.append(rel_path)
+
+            if missing_entries:
+                print(
+                    "Warning: Skipping "
+                    f"{len(missing_entries)} tracked files missing locally."
+                )
+                preview = missing_entries[:5]
+                for path in preview:
+                    print(f"  - {path}")
+                if len(missing_entries) > len(preview):
+                    print(f"  ... and {len(missing_entries) - len(preview)} more")
+
+            if not existing_entries:
+                print("No existing tracked files to sync.")
+                return True
+
+            # Create temporary file with filtered tracked files
             with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
-                f.write(result.stdout)
+                f.write(b'\0'.join(existing_entries) + b'\0')
                 temp_file = f.name
 
             rsync_cmd = [
@@ -292,14 +320,18 @@ class SSHUtils:
 
             # Ensure SSH agent environment is inherited
             env = os.environ.copy()
-            subprocess.run(rsync_cmd, check=True, env=env)
+            rsync_result = subprocess.run(rsync_cmd, env=env)
+            if rsync_result.returncode != 0:
+                print(f"Error: rsync failed with exit code {rsync_result.returncode}.")
+                return False
+
             print("Sync completed successfully")
             return True
 
         except subprocess.CalledProcessError as e:
             print("Error: 'git ls-files' failed, aborting sync.")
             if e.stderr:
-                print(e.stderr)
+                print(e.stderr.decode('utf-8', errors='replace'))
             return False
 
         except Exception as e:

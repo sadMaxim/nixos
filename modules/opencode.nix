@@ -1,31 +1,35 @@
 { config, lib, pkgs, inputs, ... }:
 let
+  opencodeNixpkgsPackage = if pkgs ? opencode then pkgs.opencode else null;
   opencodeDefaultPackage = lib.attrByPath [ "packages" pkgs.system "default" ] null inputs.opencode;
   opencodeNamedPackage = lib.attrByPath [ "packages" pkgs.system "opencode" ] null inputs.opencode;
-  opencodePackage =
+  opencodeInputPackage =
     if opencodeDefaultPackage != null then
       opencodeDefaultPackage
     else if opencodeNamedPackage != null then
       opencodeNamedPackage
     else
       throw "opencode flake does not expose packages.${pkgs.system}.default or packages.${pkgs.system}.opencode";
+  opencodePackage =
+    if opencodeNixpkgsPackage != null then
+      opencodeNixpkgsPackage
+    else
+      opencodeInputPackage;
   opencodePatchedPackage = opencodePackage.overrideAttrs (old: {
     postPatch = (old.postPatch or "") + ''
-      substituteInPlace packages/script/src/index.ts \
-        --replace-fail \
-        "if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {" \
-        "if (false && !semver.satisfies(process.versions.bun, expectedBunVersionRange)) {"
+      if grep -Fq "if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {" packages/script/src/index.ts; then
+        substituteInPlace packages/script/src/index.ts \
+          --replace-fail \
+          "if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {" \
+          "if (false && !semver.satisfies(process.versions.bun, expectedBunVersionRange)) {"
+      fi
     '';
   });
 
   opencodeConfigText = ''
     {
       "$schema": "https://opencode.ai/config.json",
-      "plugin": [
-        "opencode-antigravity-auth@latest",
-        "opencode-openai-codex-auth",
-        "@noodlbox/opencode-plugin"
-      ],
+      "plugin": [],
       "tools": {
         "websearch": false,
         "grep": false,
