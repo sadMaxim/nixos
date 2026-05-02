@@ -4,7 +4,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    opencode.url = "github:anomalyco/opencode/v1.14.22";
+    opencode-nix.url = "github:dominicnunez/opencode-nix";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";

@@ -38,6 +38,18 @@
         exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
       '';
     };
+    opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
+      set -euo pipefail
+
+      if [ -n "''${XDG_RUNTIME_DIR:-}" ]; then
+        export TMPDIR="$XDG_RUNTIME_DIR/opencode-tmp"
+      else
+        export TMPDIR="''${XDG_CACHE_HOME:-$HOME/.cache}/opencode/tmp"
+      fi
+      mkdir -p "$TMPDIR"
+
+      exec ${lib.getExe inputs.opencode-nix.packages.${pkgs.system}.default} "$@"
+    '';
   in {
 
    home.stateVersion = "25.05";
@@ -89,6 +101,7 @@
 
      ##### ai
       inputs.antigravity-nix.packages.${pkgs.system}.default
+      opencodeWrapped
       # Command-line interface for the Gemini AI model
       unstable.gemini-cli
 
@@ -116,7 +129,6 @@
      ./tmux.nix
      ./programming.nix
      ./agents.nix
-     ./opencode.nix
       inputs.nixvim.homeModules.nixvim 
    ];
    

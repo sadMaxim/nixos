@@ -227,12 +227,12 @@
   nix = {
     settings = {
       auto-optimise-store = true;
-      builders-use-substitutes = true;
       trusted-users = [ "root" "maxim" ];
       experimental-features = [
         "nix-command"
         "flakes"
       ];
+
       substituters = [
         "https://cache.nixos.org/"
         "https://nix-community.cachix.org"
@@ -250,8 +250,4 @@
       ];
     };
   };
-
-
-
-
 }
