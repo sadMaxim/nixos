@@ -1,4 +1,4 @@
-{ pkgs, inputs, nixpkgs-unstable, ... }:
+{ pkgs, inputs, nixpkgs-unstable, lib, ... }:
 let
   unstable = nixpkgs-unstable.legacyPackages.${pkgs.system};
   mgrepVersion = "0.1.10";
@@ -21,12 +21,35 @@ let
     pnpmDeps = mgrepPnpmDeps;
   });
   codexCli = inputs.codex-cli-nix.packages.${pkgs.system}.default;
+
+  mmxVersion = "1.0.12";
+  mmxCli = pkgs.stdenv.mkDerivation {
+    pname = "mmx-cli";
+    version = mmxVersion;
+    src = pkgs.fetchurl {
+      url = "https://registry.npmjs.org/mmx-cli/-/mmx-cli-${mmxVersion}.tgz";
+      sha256 = "sha256-oA9dOLUcVN1j1S3aDMp7/r6O+IGk3rabAw1bOd34dc0=";
+    };
+    nativeBuildInputs = [ pkgs.bun ];
+    dontBuild = true;
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin
+      echo "#!${pkgs.bash}/bin/bash" > $out/bin/mmx
+      echo "exec ${pkgs.bun}/bin/bun $out/lib/node_modules/mmx-cli/dist/mmx.mjs \"\$@\"" >> $out/bin/mmx
+      chmod +x $out/bin/mmx
+      mkdir -p $out/lib/node_modules
+      cp -R . $out/lib/node_modules/mmx-cli
+      runHook postInstall
+    '';
+  };
 in
 {
   home.packages = [
     # for ai agents
     mgrepLatest
     codexCli
+    mmxCli
   ];
 
   home.file.".codex/config.toml".text = ''
@@ -58,4 +81,6 @@ in
     first. If that fails or is unavailable, fall back to Codex's native web
     search when it is enabled.
   '';
+
+  # Note: Run 'mmx auth login --api-key sk-cp-xxxxx' after install to configure API key
 }
