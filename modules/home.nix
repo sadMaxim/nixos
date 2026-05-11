@@ -38,18 +38,6 @@
         exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
       '';
     };
-    opencodeWrapped = pkgs.writeShellScriptBin "opencode" ''
-      set -euo pipefail
-
-      if [ -n "''${XDG_RUNTIME_DIR:-}" ]; then
-        export TMPDIR="$XDG_RUNTIME_DIR/opencode-tmp"
-      else
-        export TMPDIR="''${XDG_CACHE_HOME:-$HOME/.cache}/opencode/tmp"
-      fi
-      mkdir -p "$TMPDIR"
-
-      exec ${lib.getExe inputs.opencode-nix.packages.${pkgs.system}.default} "$@"
-    '';
   in {
 
    home.stateVersion = "25.05";
@@ -88,10 +76,12 @@
      dmidecode
      # JavaScript runtime environment
      nodejs
-     # Process file descriptor lister
-     lsof
-     # Privacy-focused web browser
-     brave
+      # Process file descriptor lister
+      lsof
+      # RunPod command-line interface
+      runpodctl
+      # Privacy-focused web browser
+      brave
      # Desktop Telegram client
      telegram-desktop
         # Age encryption tool
@@ -100,8 +90,8 @@
      imagemagick
 
      ##### ai
-      inputs.antigravity-nix.packages.${pkgs.system}.default
-      opencodeWrapped
+       inputs.antigravity-nix.packages.${pkgs.system}.default
+       inputs.opencode-nix.packages.${pkgs.system}.default
       # Command-line interface for the Gemini AI model
       unstable.gemini-cli
 

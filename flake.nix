@@ -12,6 +12,7 @@
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    claude-code-nix.url = "github:sadjow/claude-code-nix";
   };
 
 
