@@ -98,6 +98,30 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  # Overlay to add latest runpodctl (pre-built binary)
+  nixpkgs.overlays = [
+    (final: prev: {
+      runpodctl = final.stdenv.mkDerivation {
+        pname = "runpodctl";
+        version = "2.2.0";
+        src = final.fetchurl {
+          url = "https://github.com/runpod/runpodctl/releases/download/v2.2.0/runpodctl-linux-amd64.tar.gz";
+          sha256 = "0mq819kw4y1f6ah0r46jsi0rl11r93d0blfaalx05g1r045mplqi";
+        };
+        sourceRoot = ".";
+        installPhase = ''
+          install -Dm755 runpodctl $out/bin/runpodctl
+        '';
+        meta = with final.lib; {
+          description = "CLI tool to manage Runpod resources";
+          homepage = "https://github.com/Run-Pod/runpodctl";
+          license = final.lib.licenses.asl20;
+          platforms = final.lib.platforms.linux;
+        };
+      };
+    })
+  ];
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -111,6 +135,8 @@
     gcc
     android-tools
     simple-mtpfs
+    claude-code
+    gh
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
