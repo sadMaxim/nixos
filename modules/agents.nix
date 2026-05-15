@@ -1,12 +1,12 @@
 { pkgs, inputs, nixpkgs-unstable, lib, ... }:
 let
   unstable = nixpkgs-unstable.legacyPackages.${pkgs.system};
-  mgrepVersion = "0.1.10";
+  mgrepVersion = "0.1.12";
   mgrepSrc = unstable.fetchFromGitHub {
     owner = "mixedbread-ai";
     repo = "mgrep";
     tag = "v${mgrepVersion}";
-    hash = "sha256-Njs0h2Roqm9xK8TV7BqrR5EwpK+ONNl3ct1fHU0UZEY=";
+    hash = "sha256-Tm5bOrYcV4LF7W3TxSBObnwVdFfBZPXpYbOKDyvuRAQ=";
   };
   mgrepPnpmDeps = unstable.fetchPnpmDeps {
     pname = "mgrep";
@@ -20,7 +20,9 @@ let
     src = mgrepSrc;
     pnpmDeps = mgrepPnpmDeps;
   });
-  codexCli = inputs.codex-cli-nix.packages.${pkgs.system}.default;
+
+  # All agents from llm-agents.nix
+  agents = inputs.llm-agents.packages.${pkgs.system};
 
   mmxVersion = "1.0.12";
   mmxCli = pkgs.stdenv.mkDerivation {
@@ -48,8 +50,14 @@ in
   home.packages = [
     # for ai agents
     mgrepLatest
-    codexCli
     mmxCli
+
+    # All coding agents from llm-agents.nix
+    agents.pi          # Pi coding agent
+    agents.codex       # OpenAI Codex
+    agents.claude-code # Anthropic Claude Code
+    agents.opencode    # OpenCode agent
+    agents.gemini-cli  # Google Gemini CLI
   ];
 
   home.file.".codex/config.toml".text = ''

@@ -4,15 +4,13 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    opencode-nix.url = "github:dominicnunez/opencode-nix";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
     nixvim.inputs.nixpkgs.follows = "nixpkgs";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
-    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-    claude-code-nix.url = "github:sadjow/claude-code-nix";
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
 

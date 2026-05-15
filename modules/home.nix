@@ -40,7 +40,9 @@
     };
   in {
 
-   home.stateVersion = "25.05";
+     home.stateVersion = "25.05";
+
+    # Groq API key is loaded at shell startup from ~/secrets/GROQ_WHISPER.
 
    home.packages = with pkgs; [
      # Archive extraction utility
@@ -74,9 +76,11 @@
      ddcutil
      # DMI table decoder for hardware information
      dmidecode
-     # JavaScript runtime environment
-     nodejs
-      # Process file descriptor lister
+      # JavaScript runtime environment
+      nodejs
+       # Haskell Hoogle search CLI
+       pkgs.haskellPackages.hoogle
+       # Process file descriptor lister
       lsof
       # RunPod command-line interface
       runpodctl
@@ -86,14 +90,28 @@
      telegram-desktop
         # Age encryption tool
         age
-     # Image manipulation tool
-     imagemagick
+      # Image manipulation tool
+      imagemagick
 
-     ##### ai
+      ##### ai
+      # Groq Whisper STT - speech to text via Groq API (OpenAI-compatible)
+      (pkgs.writeShellScriptBin "whisper-grok" ''
+        set -euo pipefail
+        API_KEY="''${GROQ_API_KEY:-}"
+        if [ -z "$API_KEY" ]; then
+          echo "Error: GROQ_API_KEY environment variable not set" >&2
+          echo "Set it with: export GROQ_API_KEY=your_key" >&2
+          exit 1
+        fi
+        MODEL="''${2:-whisper-large-v3-turbo}"
+        curl -s https://api.groq.com/v1/audio/transcriptions \
+          -H "Authorization: Bearer $API_KEY" \
+          -F "model=$MODEL" \
+          -F "file=@$1"
+      '')
+
+      ##### ai
        inputs.antigravity-nix.packages.${pkgs.system}.default
-       inputs.opencode-nix.packages.${pkgs.system}.default
-      # Command-line interface for the Gemini AI model
-      unstable.gemini-cli
 
       ##### databases
       # Web-based PostgreSQL client
@@ -126,7 +144,16 @@
 
     # programs 
     programs = {
-      bash.enable = true;
+      bash = {
+        enable = true;
+        # Source Groq API key from secrets file at shell startup
+        profileExtra = ''
+          # Groq Whisper API key
+          if [ -f "''${HOME}/secrets/GROQ_WHISPER" ]; then
+            export GROQ_API_KEY="$(cat "''${HOME}/secrets/GROQ_WHISPER")"
+          fi
+        '';
+      };
       kitty.enable = true;
       direnv = {
         enable = true;
