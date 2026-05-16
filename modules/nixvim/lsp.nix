@@ -19,11 +19,7 @@ in
       };
       gopls.enable = true;
 
-      # haskell
-      # hls.enable = true;  # Enable HLS
-      # hls.package = null; # Use the HLS from direnv (nix develop)
-      # hls.cmd = [ "haskell-language-server" "--lsp" ]; # Ensure it runs from your environment
-      # hls.autostart = true;  # Automatically start HLS
+
       svelte.enable = true;
       # aiken.enable = true;
       ts_ls.enable = true;

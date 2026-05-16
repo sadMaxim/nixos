@@ -78,8 +78,7 @@
      dmidecode
       # JavaScript runtime environment
       nodejs
-       # Haskell Hoogle search CLI
-       pkgs.haskellPackages.hoogle
+ 
        # Process file descriptor lister
       lsof
       # RunPod command-line interface

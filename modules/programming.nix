@@ -17,15 +17,6 @@
      pkgs.python313
      pkgs.nodejs
 
-    # Haskell development
-    pkgs.cabal-install
-    pkgs.ghc
-    pkgs.ghcid
-    pkgs.haskell-language-server
-    pkgs.hlint
-    pkgs.stylish-haskell
-    pkgs.fourmolu
-
     # (pkgs.python313.withPackages (ps: [
     #   ps.pip
     #   ps.torch
