@@ -111,7 +111,6 @@
       '')
 
       ##### ai
-       inputs.antigravity-nix.packages.${pkgs.system}.default
 
       ##### databases
       # Web-based PostgreSQL client
