@@ -35,12 +35,13 @@
       set -g history-limit 100000
 
       # Alt+j: popup television picker for existing tmux sessions via sesh.
+      # Enter connects, Ctrl-d kills, Ctrl-r renames the selected session.
       # Keep Ctrl+j free for Neovim mappings.
-      # Uses sesh/tv from your Home Manager profile PATH.
-      bind-key -n M-j display-popup -w 80% -h 70% -E "sesh connect -s \"$(tv --source-command 'sesh list -t' --preview-command 'tmux list-windows -t {} && printf \\\"\\n\\\" && tmux capture-pane -ep -t {} | tail -40' --preview-size 60)\""
+      bind-key -n M-j display-popup -w 80% -h 70% -E "sesh-tv"
 
-      # Alt+h / Alt+l: cycle through active tmux/sesh sessions without prefix.
-      bind-key -n M-h switch-client -p
+      # Alt+h: jump to the last-used tmux session (MRU toggle).
+      # Alt+l: cycle to the next active tmux/sesh session.
+      bind-key -n M-h switch-client -l
       bind-key -n M-l switch-client -n
 
     '';

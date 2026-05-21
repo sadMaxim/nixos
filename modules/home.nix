@@ -38,6 +38,53 @@
         exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
       '';
     };
+    seshTv = pkgs.writeShellApplication {
+      name = "sesh-tv";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.gnused
+        pkgs.sesh
+        pkgs.television
+        pkgs.tmux
+      ];
+      text = ''
+        set -euo pipefail
+
+        while true; do
+          selection="$(${pkgs.television}/bin/tv \
+            --source-command 'sesh list -t' \
+            --preview-command 'tmux list-windows -t {} && printf "\\n" && tmux capture-pane -ep -t {} | tail -40' \
+            --preview-size 60 \
+            --expect 'ctrl-d;ctrl-r')" || exit 0
+
+          first_line="$(printf '%s\n' "$selection" | sed -n '1p')"
+
+          if [ "$first_line" = "ctrl-d" ]; then
+            session="$(printf '%s\n' "$selection" | sed -n '2p')"
+            [ -n "$session" ] || continue
+            tmux kill-session -t "$session"
+            continue
+          fi
+
+          if [ "$first_line" = "ctrl-r" ]; then
+            session="$(printf '%s\n' "$selection" | sed -n '2p')"
+            [ -n "$session" ] || continue
+            printf 'Rename session "%s" to: ' "$session" >/dev/tty
+            IFS= read -r new_name </dev/tty || continue
+            [ -n "$new_name" ] || continue
+            tmux rename-session -t "$session" "$new_name"
+            continue
+          fi
+
+          # With --expect, tv may output the confirm key on the first line
+          # before the selected session. Fall back to the full output if not.
+          session="$(printf '%s\n' "$selection" | sed -n '2p')"
+          [ -n "$session" ] || session="$selection"
+          [ -n "$session" ] || exit 0
+          exec sesh connect -s "$session"
+        done
+      '';
+    };
   in {
 
      home.stateVersion = "25.05";
@@ -55,6 +102,8 @@
      sesh
      # Fast fuzzy finder used by tmux/sesh popup
      television
+     # Tmux/sesh popup helper with preview, Ctrl-d kill, and Ctrl-r rename
+     seshTv
      # Terminal file manager
      yazi
      # Distributed version control system
