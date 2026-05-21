@@ -49,6 +49,12 @@
      unzip
      # Fast line-oriented regex search tool
      ripgrep
+     # Simple, fast alternative to find
+     fd
+     # Smart tmux session manager
+     sesh
+     # Fast fuzzy finder used by tmux/sesh popup
+     television
      # Terminal file manager
      yazi
      # Distributed version control system
@@ -175,6 +181,18 @@
         defaultEditor = true;
         nixpkgs.useGlobalPackages = true;
         enable = true;
+      };
+
+      fzf = {
+        enable = true;
+        enableBashIntegration = true;
+        enableZshIntegration = false;
+        defaultCommand = "fd --type f";
+      };
+
+      zoxide = {
+        enable = true;
+        enableBashIntegration = true;
       };
 
     };

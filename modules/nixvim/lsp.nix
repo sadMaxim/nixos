@@ -8,7 +8,16 @@ in
     servers = {
       pyright.enable = true;
       # pyright.package = null;
-      nixd.enable = true; 
+      nixd = {
+        enable = true;
+        settings = {
+          nixpkgs.expr = "import <nixpkgs> { }";
+          options = {
+            nixos.expr = ''(builtins.getFlake "${flakePath}").nixosConfigurations.nixos.options'';
+            home-manager.expr = ''(builtins.getFlake "${flakePath}").nixosConfigurations.nixos.options.home-manager.users.type.getSubOptions []'';
+          };
+        };
+      };
       purescriptls.enable = true;
       purescriptls.filetypes = ["dhall" "purescript"];
       purescriptls.package = null;
