@@ -38,10 +38,90 @@
         exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
       '';
     };
+    seshHere = pkgs.writeShellApplication {
+      name = "sesh-here";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.git
+        pkgs.gnused
+        pkgs.sesh
+        pkgs.tmux
+      ];
+      text = ''
+        set -euo pipefail
+
+        dir="''${1:-$PWD}"
+        dir="$(realpath "$dir")"
+
+        clean_name() {
+          printf '%s' "$1" \
+            | sed -E 's#[/:[:space:]]+#-#g; s#[^A-Za-z0-9_.@-]#-#g; s#-+#-#g; s#^-##; s#-$##'
+        }
+
+        if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+          root="$(git -C "$dir" rev-parse --show-toplevel)"
+          repo="$(basename "$root")"
+          branch="$(git -C "$dir" branch --show-current)"
+          if [ -z "$branch" ]; then
+            branch="$(git -C "$dir" rev-parse --short HEAD)"
+          fi
+          name="$(clean_name "$repo@$branch")"
+        else
+          name="$(clean_name "$(basename "$dir")")"
+        fi
+
+        [ -n "$name" ] || name="home"
+
+        base_name="$name"
+        suffix=1
+        while tmux has-session -t "=$name" 2>/dev/null; do
+          name="$base_name-$suffix"
+          suffix=$((suffix + 1))
+        done
+
+        tmux new-session -d -s "$name" -c "$dir"
+
+        if [ -n "''${TMUX:-}" ]; then
+          exec sesh connect -s "$name"
+        else
+          exec sesh connect "$name"
+        fi
+      '';
+    };
+    sc = pkgs.writeShellApplication {
+      name = "sc";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.sesh
+        pkgs.zoxide
+      ];
+      text = ''
+        set -euo pipefail
+
+        target="''${1:-$PWD}"
+
+        if [ -d "$target" ]; then
+          dir="$(realpath "$target")"
+          exec ${seshHere}/bin/sesh-here "$dir"
+        fi
+
+        if dir="$(zoxide query -- "$target" 2>/dev/null)"; then
+          exec ${seshHere}/bin/sesh-here "$dir"
+        fi
+
+        # Fall back to normal sesh behavior for existing session/config names.
+        if [ -n "''${TMUX:-}" ]; then
+          exec sesh connect -s "$@"
+        else
+          exec sesh connect "$@"
+        fi
+      '';
+    };
     seshTv = pkgs.writeShellApplication {
       name = "sesh-tv";
       runtimeInputs = [
         pkgs.coreutils
+        pkgs.git
         pkgs.gnused
         pkgs.sesh
         pkgs.television
@@ -66,13 +146,57 @@
             continue
           fi
 
+          smart_name() {
+            dir="$1"
+            cmd="$2"
+
+            clean_name() {
+              printf '%s' "$1" \
+                | sed -E 's#[/:[:space:]]+#-#g; s#[^A-Za-z0-9_.@-]#-#g; s#-+#-#g; s#^-##; s#-$##'
+            }
+
+            if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+              root="$(git -C "$dir" rev-parse --show-toplevel)"
+              repo="$(basename "$root")"
+              branch="$(git -C "$dir" branch --show-current)"
+              if [ -z "$branch" ]; then
+                branch="$(git -C "$dir" rev-parse --short HEAD)"
+              fi
+              base="$repo@$branch"
+            else
+              base="$(basename "$dir")"
+            fi
+
+            case "$cmd" in
+              bash|zsh|fish|sh|tmux|nu) printf '%s\n' "$(clean_name "$base")" ;;
+              *) printf '%s\n' "$(clean_name "$base-$cmd")" ;;
+            esac
+          }
+
+          unique_name() {
+            base="$1"
+            old="$2"
+            name="$base"
+            suffix=1
+            while tmux has-session -t "=$name" 2>/dev/null && [ "$name" != "$old" ]; do
+              name="$base-$suffix"
+              suffix=$((suffix + 1))
+            done
+            printf '%s\n' "$name"
+          }
+
           if [ "$first_line" = "ctrl-r" ]; then
-            session="$(printf '%s\n' "$selection" | sed -n '2p')"
-            [ -n "$session" ] || continue
-            printf 'Rename session "%s" to: ' "$session" >/dev/tty
-            IFS= read -r new_name </dev/tty || continue
-            [ -n "$new_name" ] || continue
-            tmux rename-session -t "$session" "$new_name"
+            sesh list -t | while IFS= read -r session; do
+              [ -n "$session" ] || continue
+              dir="$(tmux display-message -p -t "=$session:" '#{pane_current_path}' 2>/dev/null || true)"
+              cmd="$(tmux display-message -p -t "=$session:" '#{pane_current_command}' 2>/dev/null || true)"
+              [ -n "$dir" ] || continue
+              [ -n "$cmd" ] || cmd="shell"
+              new_name="$(unique_name "$(smart_name "$dir" "$cmd")" "$session")"
+              [ -n "$new_name" ] || continue
+              [ "$new_name" = "$session" ] && continue
+              tmux rename-session -t "=$session" "$new_name"
+            done
             continue
           fi
 
@@ -102,7 +226,11 @@
      sesh
      # Fast fuzzy finder used by tmux/sesh popup
      television
-     # Tmux/sesh popup helper with preview, Ctrl-d kill, and Ctrl-r rename
+     # Create/switch to a smart tmux session for the current directory
+     seshHere
+     # Short smart sesh connect command: sc <path-or-zoxide-query>
+     sc
+     # Tmux/sesh popup helper with preview, Ctrl-d kill, and Ctrl-r smart rename
      seshTv
      # Terminal file manager
      yazi

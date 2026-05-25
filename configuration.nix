@@ -135,7 +135,6 @@
     gcc
     android-tools
     simple-mtpfs
-    claude-code
     gh
   ];
 

@@ -215,7 +215,6 @@
   ";
   extraPlugins = with pkgs.vimPlugins; [
     purescript-vim
-    opencode-nvim
   ];
 
 }

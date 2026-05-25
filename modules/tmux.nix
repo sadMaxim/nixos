@@ -35,9 +35,13 @@
       set -g history-limit 100000
 
       # Alt+j: popup television picker for existing tmux sessions via sesh.
-      # Enter connects, Ctrl-d kills, Ctrl-r renames the selected session.
+      # Enter connects, Ctrl-d kills, Ctrl-r smart-renames all sessions.
       # Keep Ctrl+j free for Neovim mappings.
       bind-key -n M-j display-popup -w 80% -h 70% -E "sesh-tv"
+
+      # Alt+n: create/switch to a smart session for the current pane path.
+      # Git repos are named repo@branch; other dirs use their basename.
+      bind-key -n M-n run-shell "sc '#{pane_current_path}'"
 
       # Alt+h: jump to the last-used tmux session (MRU toggle).
       # Alt+l: cycle to the next active tmux/sesh session.
