@@ -38,6 +38,13 @@
         exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
       '';
     };
+    wrangler = pkgs.writeShellApplication {
+      name = "wrangler";
+      runtimeInputs = [ pkgs.nodejs ];
+      text = ''
+        exec npx --yes wrangler@latest "$@"
+      '';
+    };
     seshHere = pkgs.writeShellApplication {
       name = "sesh-here";
       runtimeInputs = [
@@ -300,6 +307,8 @@
 
       ##### ssh tools
       sshUtils
+      # Cloudflare Workers CLI (wraps npx --yes wrangler@latest)
+      wrangler
 
      ##### design
      # 3D creation suite
