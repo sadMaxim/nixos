@@ -5,13 +5,13 @@ let
   # All agents from llm-agents.nix
   agents = inputs.llm-agents.packages.${pkgs.system};
 
-  mmxVersion = "1.0.12";
+  mmxVersion = "1.0.16";
   mmxCli = pkgs.stdenv.mkDerivation {
     pname = "mmx-cli";
     version = mmxVersion;
     src = pkgs.fetchurl {
       url = "https://registry.npmjs.org/mmx-cli/-/mmx-cli-${mmxVersion}.tgz";
-      sha256 = "sha256-oA9dOLUcVN1j1S3aDMp7/r6O+IGk3rabAw1bOd34dc0=";
+      sha256 = "sha256-GYu2D7ogus7bYLaAJy5dr/2HDx81a94oBN/n5BLint0=";
     };
     nativeBuildInputs = [ pkgs.bun ];
     dontBuild = true;

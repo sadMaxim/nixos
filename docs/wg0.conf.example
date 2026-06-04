@@ -1,0 +1,40 @@
+# Example WireGuard configuration for wg-quick.
+# Copy this to /etc/wireguard/wg0.conf and set mode 0600.
+#
+# This is a SPLIT TUNNEL configuration.
+# Only traffic matching AllowedIPs is routed through the VPN.
+# All other traffic uses your normal internet connection.
+#
+# To enable the VPN:
+#   sudo vpn-on     # starts wg-quick-wg0.service
+#   sudo vpn-off    # stops the tunnel
+#   vpn-status      # check tunnel status
+#
+# The NixOS config references this file at:
+#   networking.wg-quick.interfaces.wg0.configFile = "/etc/wireguard/wg0.conf";
+
+[Interface]
+# Your WireGuard private key (base64)
+# Generate with: wg genkey
+PrivateKey = <YOUR_PRIVATE_KEY_HERE>
+
+# IP address for the wg0 interface (tunnel IP)
+Address = <YOUR_TUNNEL_IP_HERE>
+
+# Optional: DNS server to use while VPN is active (split tunnel may limit this)
+# DNS = <YOUR_DNS_IP_HERE>
+
+[Peer]
+# The VPN server's public key
+PublicKey = <SERVER_PUBLIC_KEY_HERE>
+
+# Split tunnel: only route these IPs through VPN.
+# Example: route 10.0.0.0/8 and 192.168.1.0/24 through VPN.
+# Format: comma-separated CIDR ranges, or 0.0.0.0/0 for full tunnel.
+AllowedIPs = <CIDR_RANGE_HERE>
+
+# VPN server endpoint: IP or hostname + port
+Endpoint = <SERVER_IP_OR_HOSTNAME:H_PORT>
+
+# Optional: keepalive packet interval (seconds)
+# PersistentKeepalive = 25

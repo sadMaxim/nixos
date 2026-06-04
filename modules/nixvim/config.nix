@@ -162,6 +162,11 @@
       key = "<Tab>";
       action = ":lua vim.lsp.buf.code_action({ context = { only = { 'source' } } })<CR>";
     }
+    {
+      mode = "n";
+      key = "cu";
+      action = ":lua _G.copy_file_path_with_line()<CR>";
+    }
     # Windsurf keymaps
    
   ];

@@ -214,6 +214,12 @@
           ", F7, exec, hyprctl --batch 'keyword monitor ${edp}; keyword monitor ${dp}'; brightnessctl set 90%" 
           # Screenshot (select area) to file + clipboard
           ", F12, exec, sh -lc 'mkdir -p \"$HOME/Pictures/Screenshots\"; file=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim -g \"$(slurp)\" - | tee \"$file\" | wl-copy'"
+          # Screen recording: F11 = toggle 3-fps full-screen record (start, press again to stop).
+          # On stop, a file:// URI for the saved /tmp/recording-*.mp4 is copied to the clipboard.
+          ", F11, exec, gsr-toggle"
+          # (Previously: SHIFT+Print = ShadowPlay-style instant save. Removed because
+          #  this keyboard/layout doesn't expose a `Print` keysym. The gsr-save-replay
+          #  script is still on PATH if you want to bind it to a different key.)
           # warpd
         ];
         
@@ -260,6 +266,9 @@
         # Autostart
         exec-once = [
           "hyprctl setcursor rose-pine-hyprcursor 28"
+          # gpu-screen-recorder replay daemon: always-on 30s ring buffer, ~1% GPU when idle.
+          # Logs to ~/.local/share/gsr-replay.log; bind `gsr-save-replay` to a key to flush.
+          "sh -lc 'mkdir -p \"$HOME/Videos/Replays\" \"$HOME/.local/share\" && gpu-screen-recorder -w screen -f 60 -c mp4 -q medium -r 30 -mf yes -a default_output -o \"$HOME/Videos/Replays\" >> \"$HOME/.local/share/gsr-replay.log\" 2>&1'"
         ];
       };
     };

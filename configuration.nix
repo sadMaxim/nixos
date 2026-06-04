@@ -83,12 +83,16 @@
   users.users.maxim = {
     isNormalUser = true;
     description = "maxim";
-    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" ];
+    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" "video" ];
     packages = with pkgs; [
     #  thunderbird
     pavucontrol
     ];
   };
+
+  # gpu-screen-recorder: promptless full-screen recording via the gsr-kms-server setcap wrapper.
+  # See modules/hyprland.nix for the replay daemon, hotkeys, and the gsr-toggle/gsr-save-replay scripts.
+  programs.gpu-screen-recorder.enable = true;
 
   # Install firefox.
   # programs.firefox.enable = true;
@@ -179,6 +183,7 @@
   };
   hardware.graphics.enable = true;
   programs.amnezia-vpn.enable = true;
+
   services.udisks2.enable = true;
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
   # display

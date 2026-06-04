@@ -38,13 +38,6 @@
         exec ${pkgs.python3}/bin/python ${./ssh_utils.py} "$@"
       '';
     };
-    wrangler = pkgs.writeShellApplication {
-      name = "wrangler";
-      runtimeInputs = [ pkgs.nodejs ];
-      text = ''
-        exec npx --yes wrangler@latest "$@"
-      '';
-    };
     seshHere = pkgs.writeShellApplication {
       name = "sesh-here";
       runtimeInputs = [
@@ -123,6 +116,128 @@
           exec sesh connect "$@"
         fi
       '';
+    };
+    # Toggle gpu-screen-recorder: full-screen start/stop, 3 fps / very-low quality,
+    # tiny file in /tmp, file:// URI copied to the clipboard on stop.
+    # Bound to F11 in modules/hyprland.nix.
+    gsrToggle = pkgs.writeShellApplication {
+      name = "gsr-toggle";
+      runtimeInputs = with pkgs; [
+        coreutils
+        findutils
+        gawk
+        procps
+        wl-clipboard
+        libnotify
+        gpu-screen-recorder
+      ];
+      text = ''
+        set -euo pipefail
+
+        OUT="/tmp"
+
+        if pgrep -x gpu-screen-recorder >/dev/null; then
+          # Already recording -> stop, then copy a file:// URI for the most recent file to the clipboard
+          pkill -INT -x gpu-screen-recorder
+          for _ in $(seq 1 25); do
+            sleep 0.2
+            pgrep -x gpu-screen-recorder >/dev/null || break
+          done
+          latest="$(find "$OUT" -maxdepth 1 -type f -name 'recording-*.mp4' -printf '%T@ %p\n' 2>/dev/null \
+            | sort -rn \
+            | head -1 \
+            | awk '{$1=""; sub(/^ /,""); print}')"
+          if [ -n "''${latest:-}" ]; then
+            printf 'file://%s' "$latest" | wl-copy
+            sz="$(du -h "$latest" 2>/dev/null | cut -f1)"
+            notify-send -a "gpu-screen-recorder" "Recording stopped" "$(basename "$latest") (''${sz:-?}) → clipboard"
+          else
+            notify-send -a "gpu-screen-recorder" "Recording stopped" "No file found in $OUT"
+          fi
+        else
+          # Idle -> start a new low-fps, low-quality recording to /tmp
+          ts="$(date +%Y%m%d-%H%M%S)"
+          file="$OUT/recording-$ts.mp4"
+          gpu-screen-recorder \
+            -w screen -f 3 -c mp4 -q very_low \
+            -a default_output \
+            -o "$file" \
+            >/dev/null 2>&1 &
+          sleep 0.3
+          if pgrep -x gpu-screen-recorder >/dev/null; then
+            notify-send -a "gpu-screen-recorder" "Recording started" "$file"
+          else
+            notify-send -a "gpu-screen-recorder" "Recording failed to start" "Run 'gpu-screen-recorder' in a terminal to see why"
+            exit 1
+          fi
+        fi
+      '';
+    };
+    # Save the last 30s from the gpu-screen-recorder replay daemon to disk + clipboard.
+    # Bound to SHIFT+Print in modules/hyprland.nix.
+    gsrSaveReplay = pkgs.writeShellApplication {
+      name = "gsr-save-replay";
+      runtimeInputs = with pkgs; [
+        coreutils
+        findutils
+        gawk
+        procps
+        wl-clipboard
+        libnotify
+      ];
+      text = ''
+        set -euo pipefail
+
+        REPLAY_DIR="$HOME/Videos/Replays"
+
+        if ! pgrep -x gpu-screen-recorder >/dev/null; then
+          notify-send -a "gpu-screen-recorder" "Replay daemon not running" "See ~/.local/share/gsr-replay.log"
+          exit 1
+        fi
+
+        pkill -USR1 -x gpu-screen-recorder
+        sleep 0.5
+
+        # Newest .mp4 by mtime, path may contain spaces
+        latest="$(find "$REPLAY_DIR" -type f -name '*.mp4' -printf '%T@ %p\n' 2>/dev/null \
+          | sort -rn \
+          | head -1 \
+          | awk '{$1=""; sub(/^ /,""); print}')"
+
+        if [ -n "''${latest:-}" ]; then
+          printf '%s' "$latest" | wl-copy
+          notify-send -a "gpu-screen-recorder" "Replay saved" "$(basename "$latest") → clipboard"
+        else
+          notify-send -a "gpu-screen-recorder" "Replay save failed" "No file produced"
+          exit 1
+        fi
+      '';
+    };
+    neonctl = pkgs.buildNpmPackage {
+      pname = "neonctl";
+      version = "2.22.0";
+      src = pkgs.fetchurl {
+        url = "https://registry.npmjs.org/neonctl/-/neonctl-2.22.0.tgz";
+        hash = "sha256-NPoX/bBM6GntHmLQuXcJU99tpyWvC+rVwriBB0/GZsQ=";
+      };
+      postPatch = ''
+        cp ${./neonctl-package-lock.json} package-lock.json
+      '';
+      npmDepsHash = "sha256-/GVQPbJBESkadS3CDzijAbu96BVjSnM7DwxSwysOn8k=";
+      dontNpmBuild = true;
+      installPhase = ''
+        mkdir -p $out/lib/node_modules
+        cp -r . $out/lib/node_modules/neonctl
+        mkdir -p $out/bin
+        ln -s $out/lib/node_modules/neonctl/cli.js $out/bin/neonctl
+        ln -s $out/bin/neonctl $out/bin/neon
+      '';
+      meta = with pkgs.lib; {
+        description = "CLI tool for Neon Serverless Postgres";
+        homepage = "https://neon.tech/docs/reference/cli-overview";
+        license = licenses.asl20;
+        platforms = platforms.unix;
+      };
     };
     seshTv = pkgs.writeShellApplication {
       name = "sesh-tv";
@@ -273,6 +388,8 @@
       lsof
       # RunPod command-line interface
       runpodctl
+      # Neon serverless Postgres CLI
+      neonctl
       # Privacy-focused web browser
       brave
      # Desktop Telegram client
@@ -307,9 +424,6 @@
 
       ##### ssh tools
       sshUtils
-      # Cloudflare Workers CLI (wraps npx --yes wrangler@latest)
-      wrangler
-
      ##### design
      # 3D creation suite
      blender
@@ -317,8 +431,14 @@
      grim
      slurp
      xvfb-run
+     # Desktop notification sender (used by gsr-toggle / gsr-save-replay)
+     libnotify
+     # Optional GUI for gpu-screen-recorder (codec/quality settings, live preview)
+     gpu-screen-recorder-gtk
+     # Screen recording helpers bound to Print / SHIFT+Print in modules/hyprland.nix
+     gsrToggle
+     gsrSaveReplay
     ];
-   
 
    imports = [ 
      ./hyprland.nix
