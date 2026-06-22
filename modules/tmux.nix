@@ -43,10 +43,13 @@
       # Git repos are named repo@branch; other dirs use their basename.
       bind-key -n M-n run-shell "sc '#{pane_current_path}'"
 
-      # Alt+h: jump to the last-used tmux session (MRU toggle).
-      # Alt+l: cycle to the next active tmux/sesh session.
-      bind-key -n M-h switch-client -l
-      bind-key -n M-l switch-client -n
+      # Alt+h / Alt+l: cycle alphabetically backward / forward through sessions
+      # (wraps at the ends). The list is sorted with LC_ALL=C, matching the
+      # sesh-tv popup so M-j lands on the same neighbor.
+      # Alt+t: toggle to the last-used tmux session (2-state flip).
+      bind-key -n M-h run-shell "tmux-cycle prev"
+      bind-key -n M-l run-shell "tmux-cycle next"
+      bind-key -n M-t run-shell "tmux-cycle toggle"
 
     '';
   };

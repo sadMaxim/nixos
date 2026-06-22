@@ -1,9 +1,9 @@
 { pkgs, inputs, nixpkgs-unstable, lib, ... }:
 let
-  unstable = nixpkgs-unstable.legacyPackages.${pkgs.system};
+  unstable = nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 
   # All agents from llm-agents.nix
-  agents = inputs.llm-agents.packages.${pkgs.system};
+  agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
   mmxVersion = "1.0.16";
   mmxCli = pkgs.stdenv.mkDerivation {
@@ -32,9 +32,10 @@ in
     # for ai agents
     mmxCli
 
-    # Coding agents from llm-agents.nix (pi only; codex disabled per user request)
+    # Coding agents from llm-agents.nix
     agents.pi          # Pi coding agent
-    # agents.codex       # OpenAI Codex (disabled)
+    agents.claude-code # Anthropic Claude Code
+    agents.codex       # OpenAI Codex
   ];
 
   # home.file.".codex/config.toml".text = '' (disabled per user request)

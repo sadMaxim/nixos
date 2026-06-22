@@ -148,6 +148,15 @@
           "NIXOS_OZONE_WL,1"
           # Disable Xwayland entirely for a Wayland-only session.
           "WLR_NO_XWAYLAND,1"
+          # Prepend the Home Manager user profile bin to PATH so that binds of
+          # the form `, KEY, exec, gsr-toggle` (HM-only shell wrappers) can find
+          # their binary. Without this, Hyprland's exec PATH is just
+          # /run/current-system/sw/bin (set by greetd), and HM-installed
+          # commands under /etc/profiles/per-user/<user>/bin are invisible.
+          # F12 works around it via `sh -lc`, which sources ~/.profile and
+          # therefore picks up HM's session-vars.sh. Bare `exec, gsr-toggle`
+          # has no such indirection and fails silently with ENOENT.
+          "PATH,$PATH:/etc/profiles/per-user/maxim/bin"
         ];
 
         # Explicitly keep Hyprland from spawning Xwayland.
@@ -214,8 +223,8 @@
           ", F7, exec, hyprctl --batch 'keyword monitor ${edp}; keyword monitor ${dp}'; brightnessctl set 90%" 
           # Screenshot (select area) to file + clipboard
           ", F12, exec, sh -lc 'mkdir -p \"$HOME/Pictures/Screenshots\"; file=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim -g \"$(slurp)\" - | tee \"$file\" | wl-copy'"
-          # Screen recording: F11 = toggle 3-fps full-screen record (start, press again to stop).
-          # On stop, a file:// URI for the saved /tmp/recording-*.mp4 is copied to the clipboard.
+          # Screen recording: F11 = toggle 15-fps full-screen record (start, press again to stop).
+          # On stop, the absolute path of the saved /tmp/recording-*.mp4 is copied to the clipboard.
           ", F11, exec, gsr-toggle"
           # (Previously: SHIFT+Print = ShadowPlay-style instant save. Removed because
           #  this keyboard/layout doesn't expose a `Print` keysym. The gsr-save-replay
@@ -266,9 +275,18 @@
         # Autostart
         exec-once = [
           "hyprctl setcursor rose-pine-hyprcursor 28"
-          # gpu-screen-recorder replay daemon: always-on 30s ring buffer, ~1% GPU when idle.
-          # Logs to ~/.local/share/gsr-replay.log; bind `gsr-save-replay` to a key to flush.
-          "sh -lc 'mkdir -p \"$HOME/Videos/Replays\" \"$HOME/.local/share\" && gpu-screen-recorder -w screen -f 60 -c mp4 -q medium -r 30 -mf yes -a default_output -o \"$HOME/Videos/Replays\" >> \"$HOME/.local/share/gsr-replay.log\" 2>&1'"
+          # gpu-screen-recorder replay daemon: DISABLED by default.
+          # The `-mf yes` replay daemon holds the encoder/DMABUF and prevents
+          # a fresh F11 recording (gsr-toggle) from starting. The recommended
+          # workflow is to use F11 for ad-hoc recordings and only start the
+          # replay daemon manually if you need a 30s ring buffer. The
+          # gsr-save-replay script remains installed; start the daemon with:
+          #   nohup setsid gpu-screen-recorder -w screen -f 60 -c mp4 -q medium \
+          #     -r 30 -mf yes -a default_output -o "$HOME/Videos/Replays" \
+          #     >> "$HOME/.local/share/gsr-replay.log" 2>&1 </dev/null & disown
+          # and bind gsr-save-replay to a key to flush.
+          #
+          # "sh -lc 'mkdir -p \"$HOME/Videos/Replays\" \"$HOME/.local/share\" && nohup setsid gpu-screen-recorder -w screen -f 60 -c mp4 -q medium -r 30 -mf yes -a default_output -o \"$HOME/Videos/Replays\" >> \"$HOME/.local/share/gsr-replay.log\" 2>&1 </dev/null & disown'"
         ];
       };
     };

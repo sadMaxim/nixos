@@ -8,7 +8,7 @@
   
   home-manager.users.maxim = { pkgs, nixpkgs-unstable, inputs, ... }:
   let
-    unstable = nixpkgs-unstable.legacyPackages.${pkgs.system};
+    unstable = nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
     pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
       set -euo pipefail
       url="''${PGWEB_URL:-postgres://maxim@/maxim?host=/run/postgresql}"
@@ -117,9 +117,21 @@
         fi
       '';
     };
-    # Toggle gpu-screen-recorder: full-screen start/stop, 3 fps / very-low quality,
-    # tiny file in /tmp, file:// URI copied to the clipboard on stop.
+    # Toggle gpu-screen-recorder: full-screen start/stop, 15 fps / medium quality,
+    # tiny file in /tmp, absolute path copied (as plain text) to the clipboard on stop.
     # Bound to F11 in modules/hyprland.nix.
+    #
+    # Notes:
+    #   * gsr is launched via `nohup setsid … </dev/null >"$LOG" 2>&1 & disown` so
+    #     it outlives this script (otherwise the parent's SIGHUP kills gsr a fraction
+    #     of a second after F11, which the user perceives as "dies on mouse click").
+    #   * We never use a basename-only kill (pkill -x) because it would also match
+    #     the replay daemon (`-mf yes`), which cannot coexist with a fresh recording
+    #     on the same encoder. All signalling goes through the pidfile at
+    #     /tmp/gsr-toggle.pid, which is the F11 process only.
+    #   * A flock-based mutex prevents races if F11 is autorepeated or double-tapped.
+    #   * The always-on replay daemon is intentionally not auto-started from
+    #     modules/hyprland.nix exec-once; see that file for the manual start line.
     gsrToggle = pkgs.writeShellApplication {
       name = "gsr-toggle";
       runtimeInputs = with pkgs; [
@@ -127,6 +139,7 @@
         findutils
         gawk
         procps
+        util-linux
         wl-clipboard
         libnotify
         gpu-screen-recorder
@@ -134,40 +147,68 @@
       text = ''
         set -euo pipefail
 
-        OUT="/tmp"
+        # Mutex against rapid double-press (e.g. autorepeat F11).
+        exec 9>/tmp/gsr-toggle.lock
+        if ! flock -n 9; then
+          echo "gsr-toggle: another instance running" >&2
+          exit 0
+        fi
 
-        if pgrep -x gpu-screen-recorder >/dev/null; then
-          # Already recording -> stop, then copy a file:// URI for the most recent file to the clipboard
-          pkill -INT -x gpu-screen-recorder
+        OUT="/tmp"
+        PIDFILE="/tmp/gsr-toggle.pid"
+        LOG="/tmp/gsr-toggle.log"
+
+        # Stop branch: pidfile exists and points at a live gsr process.
+        if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+          PID="$(cat "$PIDFILE")"
+          kill -INT "$PID"
           for _ in $(seq 1 25); do
             sleep 0.2
-            pgrep -x gpu-screen-recorder >/dev/null || break
+            kill -0 "$PID" 2>/dev/null || break
           done
           latest="$(find "$OUT" -maxdepth 1 -type f -name 'recording-*.mp4' -printf '%T@ %p\n' 2>/dev/null \
             | sort -rn \
             | head -1 \
             | awk '{$1=""; sub(/^ /,""); print}')"
           if [ -n "''${latest:-}" ]; then
-            printf 'file://%s' "$latest" | wl-copy
+            abs="$(realpath -- "$latest")"
+            # Copy the plain absolute path to the clipboard (wl-copy defaults to
+            # text/plain), so the user can paste it into a terminal, editor, chat,
+            # etc. file:// URI was rejected: it forces text/uri-list semantics that
+            # confuse most text-paste targets.
+            printf '%s' "$abs" | wl-copy
             sz="$(du -h "$latest" 2>/dev/null | cut -f1)"
-            notify-send -a "gpu-screen-recorder" "Recording stopped" "$(basename "$latest") (''${sz:-?}) → clipboard"
+            notify-send -a "gpu-screen-recorder" "Recording stopped" "$(basename "$latest") (''${sz:-?}) → clipboard" || true
           else
-            notify-send -a "gpu-screen-recorder" "Recording stopped" "No file found in $OUT"
+            notify-send -a "gpu-screen-recorder" "Recording stopped" "No file found in $OUT" || true
           fi
+          rm -f "$PIDFILE"
         else
-          # Idle -> start a new low-fps, low-quality recording to /tmp
+          # Stale pidfile recovery: a previous run crashed without cleanup.
+          [ -f "$PIDFILE" ] && rm -f "$PIDFILE"
+
+          # Start branch: kick off a fully detached gsr instance and remember its PID.
           ts="$(date +%Y%m%d-%H%M%S)"
           file="$OUT/recording-$ts.mp4"
-          gpu-screen-recorder \
-            -w screen -f 3 -c mp4 -q very_low \
+          : > "$LOG"
+          nohup setsid gpu-screen-recorder \
+            -w screen -f 15 -c mp4 -q medium \
             -a default_output \
             -o "$file" \
-            >/dev/null 2>&1 &
-          sleep 0.3
-          if pgrep -x gpu-screen-recorder >/dev/null; then
-            notify-send -a "gpu-screen-recorder" "Recording started" "$file"
+            </dev/null >"$LOG" 2>&1 & disown
+          PID=$!
+          printf '%s\n' "$PID" > "$PIDFILE"
+
+          for _ in $(seq 1 25); do
+            sleep 0.2
+            kill -0 "$PID" 2>/dev/null && break
+          done
+
+          if kill -0 "$PID" 2>/dev/null; then
+            notify-send -a "gpu-screen-recorder" "Recording started" "$file" || true
           else
-            notify-send -a "gpu-screen-recorder" "Recording failed to start" "Run 'gpu-screen-recorder' in a terminal to see why"
+            rm -f "$PIDFILE"
+            notify-send -a "gpu-screen-recorder" "Recording failed to start" "Run gpu-screen-recorder in a terminal" || true
             exit 1
           fi
         fi
@@ -254,7 +295,7 @@
 
         while true; do
           selection="$(${pkgs.television}/bin/tv \
-            --source-command 'sesh list -t' \
+            --source-command 'sesh list -t | LC_ALL=C sort' \
             --preview-command 'tmux list-windows -t {} && printf "\\n" && tmux capture-pane -ep -t {} | tail -40' \
             --preview-size 60 \
             --expect 'ctrl-d;ctrl-r')" || exit 0
@@ -331,6 +372,56 @@
         done
       '';
     };
+    # Alphabetical session cycler used by tmux M-h / M-l / M-t bindings.
+    # next/prev: step forward/backward through sessions sorted with LC_ALL=C,
+    # wrapping at the ends. toggle: jump to the previously active session
+    # (2-state, like the old Alt+h behavior).
+    tmuxCycle = pkgs.writeShellApplication {
+      name = "tmux-cycle";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.tmux
+      ];
+      text = ''
+        set -euo pipefail
+
+        direction="''${1:-}"
+
+        case "$direction" in
+          toggle)
+            exec tmux switch-client -l
+            ;;
+          next|prev)
+            current="$(tmux display-message -p '#{session_name}')"
+            mapfile -t sessions < <(tmux list-sessions -F '#{session_name}' | LC_ALL=C sort)
+
+            n="''${#sessions[@]}"
+            [ "$n" -gt 1 ] || exit 0
+
+            idx=-1
+            for i in "''${!sessions[@]}"; do
+              if [ "''${sessions[$i]}" = "$current" ]; then
+                idx=$i
+                break
+              fi
+            done
+            [ "$idx" -ge 0 ] || exit 0
+
+            case "$direction" in
+              next) target="''${sessions[$(( (idx + 1) % n ))]}" ;;
+              prev) target="''${sessions[$(( (idx - 1 + n) % n ))]}" ;;
+            esac
+
+            [ "$target" != "$current" ] || exit 0
+            exec tmux switch-client -t "$target"
+            ;;
+          *)
+            echo "usage: tmux-cycle {next|prev|toggle}" >&2
+            exit 2
+            ;;
+        esac
+      '';
+    };
   in {
 
      home.stateVersion = "25.05";
@@ -354,6 +445,8 @@
      sc
      # Tmux/sesh popup helper with preview, Ctrl-d kill, and Ctrl-r smart rename
      seshTv
+     # Alphabetical tmux session cycler (M-h / M-l / M-t bindings)
+     tmuxCycle
      # Terminal file manager
      yazi
      # Distributed version control system
