@@ -280,96 +280,192 @@
         platforms = platforms.unix;
       };
     };
-    seshTv = pkgs.writeShellApplication {
-      name = "sesh-tv";
+    # Source script for the `sesh` television cable channel.  Prints one
+    # line per tmux session, grouped by repo (substring before the first `@`)
+    # and color-coded so the picker is readable at a glance:
+    #
+    #   <color>● collect<reset>@worktree-collect-claude  <dim>~/projects/collect<reset>
+    #
+    # Groups are sorted alphabetically and each group gets a stable color
+    # from a fixed palette.  Combined with `no_sort = true` on the channel,
+    # tv preserves the emitted order so all sessions of one repo stay
+    # together.
+    tvSeshSource = pkgs.writeShellApplication {
+      name = "tv-sesh-source";
       runtimeInputs = [
         pkgs.coreutils
-        pkgs.git
-        pkgs.gnused
-        pkgs.sesh
-        pkgs.television
+        pkgs.gawk
         pkgs.tmux
       ];
       text = ''
         set -euo pipefail
 
-        while true; do
-          selection="$(${pkgs.television}/bin/tv \
-            --source-command 'sesh list -t | LC_ALL=C sort' \
-            --preview-command 'tmux list-windows -t {} && printf "\\n" && tmux capture-pane -ep -t {} | tail -40' \
-            --preview-size 60 \
-            --expect 'ctrl-d;ctrl-r')" || exit 0
+        # Override with SESHTV_ACTIVE_THRESHOLD (seconds).  Active = running
+        # command isn't a shell OR the shell produced visible activity in the
+        # last threshold seconds.
+        ACTIVE_THRESHOLD="''${SESHTV_ACTIVE_THRESHOLD:-10}"
 
-          first_line="$(printf '%s\n' "$selection" | sed -n '1p')"
+        RESET=$'\033[0m'
+        DIM=$'\033[2m'
 
-          if [ "$first_line" = "ctrl-d" ]; then
-            session="$(printf '%s\n' "$selection" | sed -n '2p')"
-            [ -n "$session" ] || continue
-            tmux kill-session -t "$session"
-            continue
-          fi
+        # 11 visually distinct colors, cycled by group index (alphabetical).
+        COLORS=(
+          $'\033[36m'  # cyan
+          $'\033[35m'  # magenta
+          $'\033[33m'  # yellow
+          $'\033[34m'  # blue
+          $'\033[32m'  # green
+          $'\033[91m'  # bright red
+          $'\033[92m'  # bright green
+          $'\033[93m'  # bright yellow
+          $'\033[94m'  # bright blue
+          $'\033[95m'  # bright magenta
+          $'\033[96m'  # bright cyan
+        )
+        NC=''${#COLORS[@]}
 
-          smart_name() {
-            dir="$1"
-            cmd="$2"
+        now=$(date +%s)
 
-            clean_name() {
-              printf '%s' "$1" \
-                | sed -E 's#[/:[:space:]]+#-#g; s#[^A-Za-z0-9_.@-]#-#g; s#-+#-#g; s#^-##; s#-$##'
-            }
+        tmp=$(mktemp)
+        trap 'rm -f "$tmp" "$tmp.idx"' EXIT
 
-            if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-              root="$(git -C "$dir" rev-parse --show-toplevel)"
-              repo="$(basename "$root")"
-              branch="$(git -C "$dir" branch --show-current)"
-              if [ -z "$branch" ]; then
-                branch="$(git -C "$dir" rev-parse --short HEAD)"
+        # Phase 1 — collect one row per session: group \t mark \t rest \t path.
+        # `rest` is the part after the leading `<repo>@` so it can be left
+        # uncolored in the rendered line.
+        tmux list-sessions -F "#{session_activity}|#{pane_current_command}|#{session_name}|#{pane_current_path}" \
+          | LC_ALL=C sort -t '|' -k3 \
+          | while IFS='|' read -r activity command name path; do
+              [ -n "$name" ] || continue
+              diff=$((now - activity))
+              case "$command" in
+                bash|zsh|fish|sh|nu|dash|ash|ksh|csh|tcsh|"")
+                  if [ "$diff" -lt "$ACTIVE_THRESHOLD" ]; then
+                    mark=$'\xe2\x97\x8f'  # ●
+                  else
+                    mark=$'\xe2\x97\x8b'  # ○
+                  fi
+                  ;;
+                *) mark=$'\xe2\x97\x8f' ;;  # ●
+              esac
+              if [[ "$name" == *@* ]]; then
+                group="''${name%%@*}"
+                rest="''${name#*@}"
+              else
+                group="$name"
+                rest=""
               fi
-              base="$repo@$branch"
-            else
-              base="$(basename "$dir")"
+              short_path="''${path/#$HOME/\~}"
+              printf '%s\t%s\t%s\t%s\n' "$group" "$mark" "$rest" "$short_path" >> "$tmp"
+            done
+
+        # Phase 2 — pick a color index for each unique group, alphabetical.
+        awk -F'\t' '{print $1}' "$tmp" | sort -u | awk -v NC="$NC" '{print (NR-1)%NC "\t" $0}' > "$tmp.idx"
+
+        # Phase 3 — emit colored, grouped lines.
+        declare -A group_color=()
+        while IFS=$'\t' read -r idx group; do
+          group_color["$group"]="''${COLORS[$idx]}"
+        done < "$tmp.idx"
+
+        # Re-sort sessions by group name so all of one repo cluster together.
+        sort -t $'\t' -k1,1 "$tmp" -o "$tmp"
+
+        while IFS=$'\t' read -r group mark rest path; do
+          color="''${group_color[$group]:-$RESET}"
+          if [ -n "$rest" ]; then
+            # <color>● <color>collect<reset>@worktree-collect-claude  <dim>~/projects/collect<reset>
+            #   mark          group colored          branch uncolored           path dim
+            printf '%s%s %s%s%s@%s  %s%s%s\n' \
+              "$color" "$mark" "$color" "$group" "$RESET" "$rest" \
+              "$DIM" "$path" "$RESET"
+          else
+            printf '%s%s %s%s%s  %s%s%s\n' \
+              "$color" "$mark" "$color" "$group" "$RESET" \
+              "$DIM" "$path" "$RESET"
+          fi
+        done < "$tmp"
+      '';
+    };
+    # Smart-rename all tmux sessions based on cwd + foreground command.
+    # Same logic that used to live inside the ctrl-r branch of the old
+    # sesh-tv wrapper; pulled out so the cable channel can call it as a
+    # `fork` action and the picker stays open while renaming runs.
+    seshTvRename = pkgs.writeShellApplication {
+      name = "sesh-tv-rename";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.git
+        pkgs.gnused
+        pkgs.sesh
+        pkgs.tmux
+      ];
+      text = ''
+        set -euo pipefail
+
+        clean_name() {
+          printf '%s' "$1" \
+            | sed -E 's#[/:[:space:]]+#-#g; s#[^A-Za-z0-9_.@-]#-#g; s#-+#-#g; s#^-##; s#-$##'
+        }
+
+        smart_name() {
+          dir="$1"
+          cmd="$2"
+
+          if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            root="$(git -C "$dir" rev-parse --show-toplevel)"
+            repo="$(basename "$root")"
+            branch="$(git -C "$dir" branch --show-current)"
+            if [ -z "$branch" ]; then
+              branch="$(git -C "$dir" rev-parse --short HEAD)"
             fi
-
-            case "$cmd" in
-              bash|zsh|fish|sh|tmux|nu) printf '%s\n' "$(clean_name "$base")" ;;
-              *) printf '%s\n' "$(clean_name "$base-$cmd")" ;;
-            esac
-          }
-
-          unique_name() {
-            base="$1"
-            old="$2"
-            name="$base"
-            suffix=1
-            while tmux has-session -t "=$name" 2>/dev/null && [ "$name" != "$old" ]; do
-              name="$base-$suffix"
-              suffix=$((suffix + 1))
-            done
-            printf '%s\n' "$name"
-          }
-
-          if [ "$first_line" = "ctrl-r" ]; then
-            sesh list -t | while IFS= read -r session; do
-              [ -n "$session" ] || continue
-              dir="$(tmux display-message -p -t "=$session:" '#{pane_current_path}' 2>/dev/null || true)"
-              cmd="$(tmux display-message -p -t "=$session:" '#{pane_current_command}' 2>/dev/null || true)"
-              [ -n "$dir" ] || continue
-              [ -n "$cmd" ] || cmd="shell"
-              new_name="$(unique_name "$(smart_name "$dir" "$cmd")" "$session")"
-              [ -n "$new_name" ] || continue
-              [ "$new_name" = "$session" ] && continue
-              tmux rename-session -t "=$session" "$new_name"
-            done
-            continue
+            base="$repo@$branch"
+          else
+            base="$(basename "$dir")"
           fi
 
-          # With --expect, tv may output the confirm key on the first line
-          # before the selected session. Fall back to the full output if not.
-          session="$(printf '%s\n' "$selection" | sed -n '2p')"
-          [ -n "$session" ] || session="$selection"
-          [ -n "$session" ] || exit 0
-          exec sesh connect -s "$session"
+          case "$cmd" in
+            bash|zsh|fish|sh|tmux|nu) clean_name "$base" ;;
+            *) clean_name "$base-$cmd" ;;
+          esac
+        }
+
+        unique_name() {
+          base="$1"
+          old="$2"
+          name="$base"
+          suffix=1
+          while tmux has-session -t "=$name" 2>/dev/null && [ "$name" != "$old" ]; do
+            name="$base-$suffix"
+            suffix=$((suffix + 1))
+          done
+          printf '%s\n' "$name"
+        }
+
+        sesh list -t | while IFS= read -r session; do
+          [ -n "$session" ] || continue
+          dir="$(tmux display-message -p -t "=$session:" '#{pane_current_path}' 2>/dev/null || true)"
+          cmd="$(tmux display-message -p -t "=$session:" '#{pane_current_command}' 2>/dev/null || true)"
+          [ -n "$dir" ] || continue
+          [ -n "$cmd" ] || cmd="shell"
+          new_name="$(unique_name "$(smart_name "$dir" "$cmd")" "$session")"
+          [ -n "$new_name" ] || continue
+          [ "$new_name" = "$session" ] && continue
+          tmux rename-session -t "=$session" "$new_name"
         done
+      '';
+    };
+    # Thin wrapper that opens the `sesh` television cable channel.  All
+    # coloring / grouping / preview / keybindings live in
+    # ~/.config/television/cable/sesh.toml (managed by home-manager via
+    # xdg.configFile below) so the picker is reusable from anywhere with
+    # just `tv sesh`.
+    seshTv = pkgs.writeShellApplication {
+      name = "sesh-tv";
+      runtimeInputs = [
+        pkgs.television
+      ];
+      text = ''
+        exec tv sesh
       '';
     };
     # Alphabetical session cycler used by tmux M-h / M-l / M-t bindings.
@@ -443,8 +539,13 @@
      seshHere
      # Short smart sesh connect command: sc <path-or-zoxide-query>
      sc
-     # Tmux/sesh popup helper with preview, Ctrl-d kill, and Ctrl-r smart rename
+     # Tmux/sesh popup helper: thin wrapper that opens the `sesh` tv channel
      seshTv
+     # Source script for the `sesh` tv cable channel (grouped, color-coded)
+     tvSeshSource
+     # Smart-rename all tmux sessions based on cwd + foreground command
+     # (called by the tv channel's Ctrl-R action)
+     seshTvRename
      # Alphabetical tmux session cycler (M-h / M-l / M-t bindings)
      tmuxCycle
      # Terminal file manager
@@ -595,7 +696,62 @@
       };
 
     };
-    
 
+    # Television cable channel for tmux sessions.  Lets `tv sesh` open the
+    # picker with grouped, color-coded rows, a live preview of the selected
+    # session's pane, and Enter / Ctrl-D / Ctrl-R keybindings for switch /
+    # kill / smart-rename.  All visual rules and grouping live here so the
+    # picker is reusable from anywhere with just `tv sesh`.
+    xdg.configFile."television/cable/sesh.toml".text = ''
+      [metadata]
+      name = "sesh"
+      description = "Tmux sessions, grouped by repo and color-coded"
+      requirements = ["tmux", "television"]
+
+      [source]
+      command = "tv-sesh-source"
+      # Each line is ANSI-formatted: <color>● collect<reset>@worktree-...  <dim>~/path<reset>.
+      # `no_sort` keeps the emitted order so all sessions of one repo cluster together;
+      # `frecency = false` disables match-quality re-ranking on top of that.
+      ansi = true
+      no_sort = true
+      frecency = false
+      # The rendered line is "<mark> <repo>@<rest>  <path>".  Strip ANSI and
+      # take the second space-separated field — that's the bare session name
+      # sesh/tmux need to switch to.
+      output = "{strip_ansi|split: :1}"
+
+      [preview]
+      command = "tmux list-windows -t {strip_ansi|split: :1} && printf '\\n' && tmux capture-pane -ep -t {strip_ansi|split: :1} | tail -40"
+
+      [ui]
+      ui_scale = 90
+
+      [ui.input_bar]
+      header = "Tmux Sessions — ⏎ switch · ⌃D kill · ⌃R rename · grouped by repo"
+
+      [ui.preview_panel]
+      size = 60
+
+      [keybindings]
+      enter = "actions:connect"
+      ctrl-d = "actions:kill"
+      ctrl-r = "actions:smart-rename"
+
+      [actions.connect]
+      description = "Switch to the selected session"
+      command = "sesh connect -s {}"
+      mode = "execute"
+
+      [actions.kill]
+      description = "Kill the selected session"
+      command = "tmux kill-session -t {}"
+      mode = "fork"
+
+      [actions.smart-rename]
+      description = "Smart-rename all sessions based on cwd + foreground command"
+      command = "sesh-tv-rename"
+      mode = "fork"
+    '';
   };
 }

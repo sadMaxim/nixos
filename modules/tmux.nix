@@ -34,9 +34,12 @@
       # Nice: big scrollback
       set -g history-limit 100000
 
-      # Alt+j: popup television picker for existing tmux sessions via sesh.
-      # Enter connects, Ctrl-d kills, Ctrl-r smart-renames all sessions.
-      # Keep Ctrl+j free for Neovim mappings.
+      # Alt+j: popup television picker for existing tmux sessions.
+      # The picker is the `sesh` cable channel defined in
+      # modules/home.nix (xdg.configFile."television/cable/sesh.toml"):
+      # sessions are grouped by repo and color-coded; Enter switches,
+      # Ctrl-d kills, Ctrl-r smart-renames all sessions.  Keep Ctrl+j free
+      # for Neovim mappings.
       bind-key -n M-j display-popup -w 80% -h 70% -E "sesh-tv"
 
       # Alt+n: create/switch to a smart session for the current pane path.
