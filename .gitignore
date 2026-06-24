@@ -1,0 +1,6 @@
+.cache/
+.codex
+result
+server exited unexpectedly
+__pycache__/
+*.py[cod]

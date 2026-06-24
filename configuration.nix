@@ -83,7 +83,7 @@
   users.users.maxim = {
     isNormalUser = true;
     description = "maxim";
-    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" "video" ];
+    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" "video" "docker" ];
     packages = with pkgs; [
     #  thunderbird
     pavucontrol
@@ -140,6 +140,7 @@
     android-tools
     simple-mtpfs
     gh
+    docker-buildx
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -151,6 +152,9 @@
   # };
 
   # List services that you want to enable:
+
+  # Enable Docker.
+  virtualisation.docker.enable = true;
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
