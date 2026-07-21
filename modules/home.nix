@@ -329,9 +329,10 @@
         tmp=$(mktemp)
         trap 'rm -f "$tmp" "$tmp.idx"' EXIT
 
-        # Phase 1 — collect one row per session: group \t mark \t rest \t path.
-        # `rest` is the part after the leading `<repo>@` so it can be left
-        # uncolored in the rendered line.
+        # Phase 1 — collect one row per session: group \t mark \t name \t path.
+        # Keep the full session name instead of a possibly-empty `rest` field:
+        # Bash collapses adjacent IFS whitespace when reading tab-delimited rows,
+        # which would turn `name<TAB><TAB>path` into `name<TAB>path`.
         tmux list-sessions -F "#{session_activity}|#{pane_current_command}|#{session_name}|#{pane_current_path}" \
           | LC_ALL=C sort -t '|' -k3 \
           | while IFS='|' read -r activity command name path; do
@@ -349,13 +350,11 @@
               esac
               if [[ "$name" == *@* ]]; then
                 group="''${name%%@*}"
-                rest="''${name#*@}"
               else
                 group="$name"
-                rest=""
               fi
               short_path="''${path/#$HOME/\~}"
-              printf '%s\t%s\t%s\t%s\n' "$group" "$mark" "$rest" "$short_path" >> "$tmp"
+              printf '%s\t%s\t%s\t%s\n' "$group" "$mark" "$name" "$short_path" >> "$tmp"
             done
 
         # Phase 2 — pick a color index for each unique group, alphabetical.
@@ -370,9 +369,10 @@
         # Re-sort sessions by group name so all of one repo cluster together.
         sort -t $'\t' -k1,1 "$tmp" -o "$tmp"
 
-        while IFS=$'\t' read -r group mark rest path; do
+        while IFS=$'\t' read -r group mark name path; do
           color="''${group_color[$group]:-$RESET}"
-          if [ -n "$rest" ]; then
+          if [[ "$name" == *@* ]]; then
+            rest="''${name#*@}"
             # <color>● <color>collect<reset>@worktree-collect-claude  <dim>~/projects/collect<reset>
             #   mark          group colored          branch uncolored           path dim
             printf '%s%s %s%s%s@%s  %s%s%s\n' \
@@ -731,7 +731,7 @@
       header = "Tmux Sessions — ⏎ switch · ⌃D kill · ⌃R rename · grouped by repo"
 
       [ui.preview_panel]
-      size = 60
+      size = 40
 
       [keybindings]
       enter = "actions:connect"
@@ -740,12 +740,12 @@
 
       [actions.connect]
       description = "Switch to the selected session"
-      command = "sesh connect -s {}"
+      command = "sesh connect -s {strip_ansi|split: :1}"
       mode = "execute"
 
       [actions.kill]
       description = "Kill the selected session"
-      command = "tmux kill-session -t {}"
+      command = "tmux kill-session -t {strip_ansi|split: :1}"
       mode = "fork"
 
       [actions.smart-rename]

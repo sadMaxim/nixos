@@ -36,6 +36,7 @@ in
     agents.pi          # Pi coding agent
     agents.claude-code # Anthropic Claude Code
     agents.codex       # OpenAI Codex
+    agents.opencode    # OpenCode
   ];
 
   # home.file.".codex/config.toml".text = '' (disabled per user request)

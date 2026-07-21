@@ -79,6 +79,30 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
+  # Keyboard chatter / bounce filter — worn keyboards sometimes emit two
+  # events from a single physical press (contact bounce / debounce). libinput's
+  # ModelBouncingKeys drops the duplicate at the input layer, before Hyprland
+  # or any application sees it.
+  #
+  # Why here and not in modules/hyprland.nix `kb_options`: XKB `bouncekeys` is
+  # an AccessX runtime control that only exists on X11; Wayland compositors
+  # silently ignore it. libinput is the layer Hyprland actually consumes key
+  # events from, so this is the right place for the fix on Hyprland.
+  #
+  # MatchUdevType=keyboard applies this to every keyboard. To debounce only
+  # one keyboard, replace the [*] section header with its `Device` name from
+  # `libinput list-devices`.
+  #
+  # After `sudo nixos-rebuild switch`, log out of Hyprland and back in (or
+  # restart Hyprland) so libinput re-reads the quirks file. Verify with
+  # `sudo libinput debug-events --device /dev/input/eventN` while typing —
+  # you should see one event per physical press.
+  environment.etc."libinput/local-overrides.quirks".text = ''
+    [*]
+    MatchUdevType=keyboard
+    ModelBouncingKeys=1
+  '';
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.maxim = {
     isNormalUser = true;
@@ -94,8 +118,23 @@
   # See modules/hyprland.nix for the replay daemon, hotkeys, and the gsr-toggle/gsr-save-replay scripts.
   programs.gpu-screen-recorder.enable = true;
 
+  # Steam.  `programs.steam` (rather than `pkgs.steam` in home.packages) sets
+  # up the `steam` group and pulls in the 32-bit Vulkan/OpenGL drivers needed
+  # by most native Linux games.  `allowUnfree = true` is already set above,
+  # which is required.
+  #
+  # After `sudo nixos-rebuild switch`, add yourself to the steam group so
+  # games can access your home directory's game prefixes without permission
+  # errors: `sudo usermod -aG steam $USER`, then log out and back in.
+  programs.steam = {
+    enable = true;
+    # Open the firewall ports Steam Remote Play needs if you ever stream
+    # from another machine.  Comment out if you don't use Remote Play.
+    remotePlay.openFirewall = true;
+  };
+
   # Install firefox.
-  # programs.firefox.enable = true;
+  programs.firefox.enable = true;
   # mobile connect 
   # programs.kdeconnect.enable = true;
 
@@ -130,7 +169,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
+    wget
     lm_sensors
     htop
     gocryptfs
