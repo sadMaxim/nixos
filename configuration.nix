@@ -209,9 +209,6 @@
     settingsFile = "/home/maxim/.config/xray/config.json";
   };
 
-  # Tailscale disabled; the gaming VM uses a dedicated WireGuard tunnel.
-  services.tailscale.enable = false;
-
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
