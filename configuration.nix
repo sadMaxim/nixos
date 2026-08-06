@@ -194,8 +194,18 @@
   # Xray tunnel to vdsina — replaces `wg-vdsina` WireGuard profile (DPId).
   # Config (with Reality keys) lives in /home/maxim/.config/xray/config.json
   # which is gitignored. This repo contains ONLY the file path, never secrets.
+  #
+  # Use the locally-built xray 26.3.27 binary instead of pkgs.xray (which
+  # is xray-core 25.10.15 — its TUN config parser refuses any inbound
+  # without a listen+port pair, so the TUN inbound fails with
+  # 'Listen on AnyIP but no Port(s) set in InboundDetour').
   services.xray = {
     enable = true;
+    package = pkgs.runCommandLocal "xray-26.3.27-local" { } ''
+      mkdir -p $out/bin
+      cp ${/home/maxim/.local/share/xray-test/xray} $out/bin/xray
+      chmod +x $out/bin/xray
+    '';
     settingsFile = "/home/maxim/.config/xray/config.json";
   };
 
