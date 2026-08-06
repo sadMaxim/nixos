@@ -275,6 +275,8 @@
         # Autostart
         exec-once = [
           "hyprctl setcursor rose-pine-hyprcursor 28"
+          # NetworkManager tray applet; use it to toggle imported VPN profiles.
+          "nm-applet --indicator"
           # gpu-screen-recorder replay daemon: DISABLED by default.
           # The `-mf yes` replay daemon holds the encoder/DMABUF and prevents
           # a fresh F11 recording (gsr-toggle) from starting. The recommended

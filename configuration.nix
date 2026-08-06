@@ -14,6 +14,17 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Moonlight at 1440p60/50 Mbit/s over WireGuard needs enough UDP buffering to
+  # survive short Wi-Fi and scheduler stalls. The default 212 KiB caused tens
+  # of thousands of UdpRcvbufErrors and consecutive unrecoverable frames.
+  boot.kernel.sysctl = {
+    "net.core.rmem_default" = 1048576;
+    "net.core.rmem_max" = 16777216;
+    "net.core.wmem_default" = 1048576;
+    "net.core.wmem_max" = 16777216;
+    "net.core.netdev_max_backlog" = 5000;
+  };
+
   boot.initrd.luks.devices."luks-67f943c7-079c-472e-9335-0d315c671c40".device = "/dev/disk/by-uuid/67f943c7-079c-472e-9335-0d315c671c40";
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -23,7 +34,11 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    # Prevent periodic Wi-Fi power-save stalls from dropping Moonlight UDP frames.
+    wifi.powersave = false;
+  };
 
 
   # Set your time zone.
@@ -79,29 +94,9 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Keyboard chatter / bounce filter — worn keyboards sometimes emit two
-  # events from a single physical press (contact bounce / debounce). libinput's
-  # ModelBouncingKeys drops the duplicate at the input layer, before Hyprland
-  # or any application sees it.
-  #
-  # Why here and not in modules/hyprland.nix `kb_options`: XKB `bouncekeys` is
-  # an AccessX runtime control that only exists on X11; Wayland compositors
-  # silently ignore it. libinput is the layer Hyprland actually consumes key
-  # events from, so this is the right place for the fix on Hyprland.
-  #
-  # MatchUdevType=keyboard applies this to every keyboard. To debounce only
-  # one keyboard, replace the [*] section header with its `Device` name from
-  # `libinput list-devices`.
-  #
-  # After `sudo nixos-rebuild switch`, log out of Hyprland and back in (or
-  # restart Hyprland) so libinput re-reads the quirks file. Verify with
-  # `sudo libinput debug-events --device /dev/input/eventN` while typing —
-  # you should see one event per physical press.
-  environment.etc."libinput/local-overrides.quirks".text = ''
-    [*]
-    MatchUdevType=keyboard
-    ModelBouncingKeys=1
-  '';
+  # Do not apply ModelBouncingKeys globally: it interferes with rapid A/D
+  # counter-strafing in streamed games. If keyboard chatter needs filtering,
+  # scope a quirk to the specific faulty keyboard rather than all keyboards.
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.maxim = {
@@ -171,6 +166,7 @@
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     lm_sensors
+    libva-utils
     htop
     gocryptfs
     pamixer
@@ -194,6 +190,17 @@
 
   # Enable Docker.
   virtualisation.docker.enable = true;
+
+  # Xray tunnel to vdsina — replaces `wg-vdsina` WireGuard profile (DPId).
+  # Config (with Reality keys) lives in /home/maxim/.config/xray/config.json
+  # which is gitignored. This repo contains ONLY the file path, never secrets.
+  services.xray = {
+    enable = true;
+    settingsFile = "/home/maxim/.config/xray/config.json";
+  };
+
+  # Tailscale disabled; the gaming VM uses a dedicated WireGuard tunnel.
+  services.tailscale.enable = false;
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
@@ -224,8 +231,12 @@
       user = "greeter";
     };
   };
-  hardware.graphics.enable = true;
-  programs.amnezia-vpn.enable = true;
+  hardware.graphics = {
+    enable = true;
+    # Kaby Lake Iris Plus 640: hardware H.264/HEVC decoding for Moonlight.
+    extraPackages = with pkgs; [ intel-media-driver ];
+  };
+  environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
 
   services.udisks2.enable = true;
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.

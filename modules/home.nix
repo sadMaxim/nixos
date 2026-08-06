@@ -569,6 +569,8 @@
      wl-kbptr
      # PulseAudio/PipeWire volume control utility
      pwvucontrol
+     # Game-streaming client (connect to Sunshine / NVIDIA GameStream hosts)
+     moonlight-qt
      # Command-line utility to control screen brightness
      brightnessctl
      # DDC/CI control for monitors
@@ -588,6 +590,10 @@
       brave
      # Desktop Telegram client
      telegram-desktop
+     # LibreOffice office suite — Writer (Word .docx/.doc), Calc (Excel),
+     # Impress (PowerPoint).  Pulled from stable nixpkgs; `libreoffice-fresh`
+     # exists in unstable but tracks the rolling release.
+     libreoffice
         # Age encryption tool
         age
       # Image manipulation tool
