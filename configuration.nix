@@ -178,6 +178,7 @@
     docker-buildx
   ];
 
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -191,23 +192,12 @@
   # Enable Docker.
   virtualisation.docker.enable = true;
 
-  # Xray tunnel to vdsina — replaces `wg-vdsina` WireGuard profile (DPId).
-  # Config (with Reality keys) lives in /home/maxim/.config/xray/config.json
-  # which is gitignored. This repo contains ONLY the file path, never secrets.
-  #
-  # Use the locally-built xray 26.3.27 binary instead of pkgs.xray (which
-  # is xray-core 25.10.15 — its TUN config parser refuses any inbound
-  # without a listen+port pair, so the TUN inbound fails with
-  # 'Listen on AnyIP but no Port(s) set in InboundDetour').
-  services.xray = {
-    enable = true;
-    package = pkgs.runCommandLocal "xray-26.3.27-local" { } ''
-      mkdir -p $out/bin
-      cp ${/home/maxim/.local/share/xray-test/xray} $out/bin/xray
-      chmod +x $out/bin/xray
-    '';
-    settingsFile = "/home/maxim/.config/xray/config.json";
-  };
+  # AmneziaWG tunnel to vdsina — toggleable from NM as "awg-vdsina".
+  # Module lives at modules/amneziawg-vdsina/. The actual client config
+  # and NM connection file (with private keys) are deployed separately
+  # from the private devops repo — see
+  # devops/vdsina/amneziawg/laptop/deploy.sh.
+  services.amneziawg-vdsina.enable = true;
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
@@ -327,7 +317,6 @@
       substituters = [
         "https://cache.nixos.org/"
         "https://nix-community.cachix.org"
-        "https://cache.numtide.com"
         # "https://nix-gaming.cachix.org"
         "https://hyprland.cachix.org"
         # "https://ghostty.cachix.org"
@@ -335,7 +324,6 @@
       ];
       trusted-public-keys = [
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
         # "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
         # "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="

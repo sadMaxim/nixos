@@ -15,6 +15,7 @@
         ../configuration.nix
         ./home.nix
         ./hostname-maps.nix
+        ./amneziawg-vdsina
       ];
     };
   };
