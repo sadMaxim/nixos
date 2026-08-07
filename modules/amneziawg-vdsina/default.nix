@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  ...
 }:
 let
   kmod = pkgs.callPackage ./pkgs/amneziawg-kmod {
