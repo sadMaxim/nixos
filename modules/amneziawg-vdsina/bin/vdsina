@@ -55,7 +55,16 @@ case "$cmd" in
     exec sudo awg-quick down "$CONF"
     ;;
   status)
-    if awg show awg-vdsina 2>/dev/null; then :; else echo "vdsina: tunnel is down"; fi
+    if [ ! -d /sys/class/net/awg-vdsina ]; then
+      echo "vdsina: tunnel is down (no awg-vdsina interface)"
+      exit 1
+    fi
+    state=$(cat /sys/class/net/awg-vdsina/operstate 2>/dev/null || echo unknown)
+    echo "awg-vdsina: $state"
+    # Handshake + transfer need root for netlink; surface the error honestly.
+    if ! awg show awg-vdsina 2>/dev/null; then
+      echo "(run 'sudo vdsina status' for handshake + transfer counters)"
+    fi
     ;;
   restart)
     CONF=$(pick_conf 2>/dev/null) || CONF=/etc/amneziawg/awg-vdsina.conf
