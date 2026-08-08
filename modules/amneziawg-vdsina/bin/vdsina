@@ -7,47 +7,77 @@
 #   status    show awg state (no sudo needed)
 #   restart   down then up
 #
-# The actual awg client config (/etc/amneziawg/awg-vdsina.conf) is deployed
-# from the PRIVATE devops repo, not from this NixOS repo. See
-# devops/vdsina/amneziawg/laptop/deploy.sh.
+# Config location (in order of precedence):
+#   1. $VDSINA_CONF                  — explicit override
+#   2. $XDG_CONFIG_HOME/vdsina/awg-vdsina.conf  (usually ~/.config/vdsina/)
+#   3. $HOME/.config/vdsina/awg-vdsina.conf
+#   4. /etc/amneziawg/awg-vdsina.conf           — system-wide (for daemons)
+#
+# The config file contains the private key + PSK and is therefore NEVER
+# stored in this (public) repo. Put it at any of the paths above.
 #
 # Requires:
 #   - amneziawg.ko loaded (handled by the NixOS module via boot.kernelModules)
-#   - /etc/amneziawg/awg-vdsina.conf present (installed by deploy.sh)
 #   - awg/awg-quick on PATH (handled by environment.systemPackages)
 
 set -eu
 
-CONF=/etc/amneziawg/awg-vdsina.conf
+# Pick the config file from the precedence list above.
+pick_conf() {
+  if [ -n "${VDSINA_CONF:-}" ] && [ -f "$VDSINA_CONF" ]; then
+    echo "$VDSINA_CONF"; return 0
+  fi
+  XDG="${XDG_CONFIG_HOME:-$HOME/.config}"
+  if [ -f "$XDG/vdsina/awg-vdsina.conf" ]; then
+    echo "$XDG/vdsina/awg-vdsina.conf"; return 0
+  fi
+  if [ -f "/etc/amneziawg/awg-vdsina.conf" ]; then
+    echo "/etc/amneziawg/awg-vdsina.conf"; return 0
+  fi
+  return 1
+}
 
 cmd=${1:-help}
 
 case "$cmd" in
   up)
-    if [ ! -f "$CONF" ]; then
-      echo "vdsina: $CONF not found" >&2
-      echo "  install it via: sudo bash /path/to/devops/vdsina/amneziawg/laptop/deploy.sh" >&2
+    if ! CONF=$(pick_conf); then
+      echo "vdsina: no config found. Looked in:" >&2
+      echo "  \$VDSINA_CONF" >&2
+      echo "  \$XDG_CONFIG_HOME/vdsina/awg-vdsina.conf (currently '${XDG_CONFIG_HOME:-$HOME/.config}')" >&2
+      echo "  /etc/amneziawg/awg-vdsina.conf" >&2
       exit 1
     fi
     exec sudo awg-quick up "$CONF"
     ;;
   down)
+    CONF=$(pick_conf 2>/dev/null) || CONF=/etc/amneziawg/awg-vdsina.conf
     exec sudo awg-quick down "$CONF"
     ;;
   status)
-    awg show awg-vdsina || echo "vdsina: tunnel is down"
+    if awg show awg-vdsina 2>/dev/null; then :; else echo "vdsina: tunnel is down"; fi
     ;;
   restart)
+    CONF=$(pick_conf 2>/dev/null) || CONF=/etc/amneziawg/awg-vdsina.conf
     sudo awg-quick down "$CONF" 2>/dev/null || true
     exec sudo awg-quick up "$CONF"
     ;;
+  conf-path)
+    pick_conf || exit 1
+    ;;
   help|-h|--help)
-    echo "Usage: vdsina {up|down|status|restart|help}"
+    echo "Usage: vdsina {up|down|status|restart|conf-path|help}"
     echo ""
-    echo "  up        bring the AmneziaWG tunnel up (sudo awg-quick up)"
-    echo "  down      tear it down (sudo awg-quick down)"
-    echo "  status    show current handshake + transfer stats"
-    echo "  restart   down + up"
+    echo "  up         bring the AmneziaWG tunnel up (sudo awg-quick up)"
+    echo "  down       tear it down (sudo awg-quick down)"
+    echo "  status     show current handshake + transfer stats"
+    echo "  restart    down + up"
+    echo "  conf-path  print the config path in use"
+    echo ""
+    echo "Config lookup order:"
+    echo "  1. \$VDSINA_CONF (explicit override)"
+    echo "  2. \$XDG_CONFIG_HOME/vdsina/awg-vdsina.conf"
+    echo "  3. /etc/amneziawg/awg-vdsina.conf"
     exit 0
     ;;
   *)
