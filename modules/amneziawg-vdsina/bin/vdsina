@@ -1,0 +1,57 @@
+#!/bin/sh
+# vdsina — bring up/down the AmneziaWG tunnel to vdsina (138.16.162.74:51821).
+#
+# Subcommands:
+#   up        bring the AWG tunnel up via awg-quick (sudo)
+#   down      tear it down via awg-quick (sudo)
+#   status    show awg state (no sudo needed)
+#   restart   down then up
+#
+# The actual awg client config (/etc/amneziawg/awg-vdsina.conf) is deployed
+# from the PRIVATE devops repo, not from this NixOS repo. See
+# devops/vdsina/amneziawg/laptop/deploy.sh.
+#
+# Requires:
+#   - amneziawg.ko loaded (handled by the NixOS module via boot.kernelModules)
+#   - /etc/amneziawg/awg-vdsina.conf present (installed by deploy.sh)
+#   - awg/awg-quick on PATH (handled by environment.systemPackages)
+
+set -eu
+
+CONF=/etc/amneziawg/awg-vdsina.conf
+
+cmd=${1:-help}
+
+case "$cmd" in
+  up)
+    if [ ! -f "$CONF" ]; then
+      echo "vdsina: $CONF not found" >&2
+      echo "  install it via: sudo bash /path/to/devops/vdsina/amneziawg/laptop/deploy.sh" >&2
+      exit 1
+    fi
+    exec sudo awg-quick up "$CONF"
+    ;;
+  down)
+    exec sudo awg-quick down "$CONF"
+    ;;
+  status)
+    awg show awg-vdsina || echo "vdsina: tunnel is down"
+    ;;
+  restart)
+    sudo awg-quick down "$CONF" 2>/dev/null || true
+    exec sudo awg-quick up "$CONF"
+    ;;
+  help|-h|--help)
+    echo "Usage: vdsina {up|down|status|restart|help}"
+    echo ""
+    echo "  up        bring the AmneziaWG tunnel up (sudo awg-quick up)"
+    echo "  down      tear it down (sudo awg-quick down)"
+    echo "  status    show current handshake + transfer stats"
+    echo "  restart   down + up"
+    exit 0
+    ;;
+  *)
+    echo "vdsina: unknown command '$cmd' (try 'vdsina help')" >&2
+    exit 2
+    ;;
+esac
