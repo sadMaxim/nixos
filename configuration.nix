@@ -199,6 +199,42 @@
   # devops/vdsina/amneziawg/laptop/deploy.sh.
   services.amneziawg-vdsina.enable = true;
 
+  # Throne — Qt GUI proxy client (formerly nekoray). Built from the
+  # upstream .deb at modules/throne/pkgs/throne/default.nix, pinned to
+  # 1.2.4 (the latest release at the time of writing). Sing-box core
+  # is bundled; imports VLESS+XHTTP+REALITY links directly. Launch
+  # with `throne`. We use `services.throne-upstream` (not the
+  # colliding `programs.throne.*` from nixpkgs 25.11).
+  services.throne-upstream.enable = true;
+
+  # sing-box 1.13.18 — universal proxy platform, same core Throne
+  # uses. Built from the upstream glibc Linux amd64 release at
+  # modules/sing-box/pkgs/sing-box/default.nix. CLI: `sing-box run
+  # -c /etc/sing-box/config.json`. We expose it on $PATH so a
+  # per-user config can be loaded from ~/.config/sing-box/.
+  services.sing-box-upstream.enable = true;
+
+  # Route64.org SIT tunnel → Stockholm POP → gives the laptop a global
+  # IPv6 address. Used to reach v6-only hosts (Timeweb 2a03:6f00:a::2:b58c)
+  # and to bypass Russian DPI for v6-capable services (the Russian ISP
+  # sees only IP proto 41 to Route64, never the inner v6 traffic).
+  # Module lives at modules/route64-tunnel.nix; status command is
+  # `route64-status`. Heartbeat (route64-heartbeat.timer) keeps Route64's
+  # view of our v4 fresh every 5 min — survives ISP rotations.
+  # The API key is NOT inlined — it's read at runtime via systemd
+  # LoadCredential from /home/maxim/secrets/ROUTE64 (out of repo), so
+  # nothing sensitive ends up in any committed nix file.
+  networking.route64-tunnel = {
+    enable = true;
+    serverIPv4 = "192.67.33.15";
+    serverIPv6 = "2a11:6c7:f30:2f::1";
+    clientIPv6 = "2a11:6c7:f30:2f::2";
+    routedPrefix = "2a11:6c7:f30:2f::/64";
+    clientIPv4 = "79.165.38.189";
+    tunnelId = "34263";
+    # apiKeyFile defaults to /home/maxim/secrets/ROUTE64
+  };
+
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 

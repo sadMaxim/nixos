@@ -598,6 +598,11 @@
         age
       # Image manipulation tool
       imagemagick
+      # Throne is provided by the system module at modules/throne/ —
+      # it builds upstream Throne 1.2.4 from the .deb, not the stale
+      # nixpkgs build. Don't add `throne` here; enable the module via
+      # `programs.throne.enable = true` in configuration.nix.
+      # See modules/throne/pkgs/throne/default.nix for the derivation.
 
       ##### ai
       # Groq Whisper STT - speech to text via Groq API (OpenAI-compatible)
@@ -665,6 +670,11 @@
         '';
       };
       kitty.enable = true;
+
+      # Throne is on $PATH via home.packages (above). The home-manager
+      # `programs.throne` module isn't shipped in the pinned
+      # home-manager/release-25.11, so manage settings inside the GUI.
+      # Launch with `throne`.
       direnv = {
         enable = true;
         nix-direnv.enable = true;

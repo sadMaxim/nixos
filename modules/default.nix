@@ -16,6 +16,9 @@
         ./home.nix
         ./hostname-maps.nix
         ./amneziawg-vdsina
+        ./throne
+        ./sing-box
+        ./route64-tunnel.nix
       ];
     };
   };
