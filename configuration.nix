@@ -230,9 +230,10 @@
     serverIPv6 = "2a11:6c7:f30:2f::1";
     clientIPv6 = "2a11:6c7:f30:2f::2";
     routedPrefix = "2a11:6c7:f30:2f::/64";
-    clientIPv4 = "79.165.38.189";
+    clientIPv4 = "188.34.206.97";
     tunnelId = "34263";
     # apiKeyFile defaults to /home/maxim/secrets/ROUTE64
+    apiKeyFile = "/home/maxim/secrets/ROUTE64";
   };
 
   # Enable the OpenSSH daemon.

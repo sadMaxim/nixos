@@ -79,41 +79,75 @@ in
       example = "34263";
     };
 
+    parentDevice = mkOption {
+      type = types.str;
+      default = "wlp58s0";
+      description = ''
+        Physical interface the SIT tunnel attaches to (e.g. your Wi-Fi
+        NIC). NM requires an explicit parent for `ip-tunnel` profiles
+        because it can't auto-pick one — without this, activation fails
+        with "Failed to find a compatible device for this connection".
+      '';
+      example = "wlp58s0";
+    };
+
     apiKeyFile = mkOption {
-      type = types.path;
-      description = "Path to a file containing the Route64 API key (single line, no trailing newline required). Read at runtime via systemd LoadCredential — the key never enters any committed nix file.";
-      default = /home/maxim/secrets/ROUTE64;
+      # String, not path: flake eval is pure and won't accept absolute
+      # paths like /home/maxim/...; storing as a string keeps the value
+      # inert until activation, where systemd LoadCredential reads the
+      # actual file by path.
+      type = types.str;
+      description = ''
+        Path to a file containing the Route64 API key (single line, no
+        trailing newline required). Read at runtime via systemd
+        LoadCredential — the key never enters any committed nix file.
+        Required when enable = true.
+      '';
       example = "/home/maxim/secrets/ROUTE64";
     };
   };
 
   config = mkIf cfg.enable {
     # SIT (6in4) tunnel via NetworkManager's ip-tunnel connection type.
-    networking.networkmanager.connectionFiles."route64-ipv6" = {
-      permissions = "";
-      contents = ''
-        [connection]
-        id=route64-ipv6
-        uuid=c1b7f0c4-1f7e-4b3e-9a4f-2e6d8a4f7c2a
-        type=ip-tunnel
-        interface-name=route64-ipv6
-        autoconnect=true
-        autoconnect-priority=10
-
-        [ip-tunnel]
-        mode=4
-        local=${cfg.clientIPv4}
-        remote=${cfg.serverIPv4}
-        ttl=255
-
-        [ipv6]
-        method=manual
-        addresses=${cfg.clientIPv6}/64
-        gateway=${cfg.serverIPv6}
-
-        [ipv4]
-        method=disabled
-      '';
+    # In nixpkgs ≥24.11 this moved from `connectionFiles.<name>.contents`
+    # (a raw string) to `ensureProfiles.profiles.<name>`, a typed attrset
+    # with freeform INI under the hood. The only mandatory declared keys
+    # are `connection.id` and `connection.type`; everything else is
+    # passed through to the NM keyfile verbatim.
+    networking.networkmanager.ensureProfiles.profiles."route64-ipv6" = {
+      connection = {
+        id = "route64-ipv6";
+        uuid = "c1b7f0c4-1f7e-4b3e-9a4f-2e6d8a4f7c2a";
+        type = "ip-tunnel";
+        interface-name = "route64-ipv6";
+        autoconnect = "true";
+        autoconnect-priority = "10";
+      };
+      ip-tunnel = {
+        # NM keyfile expects an integer mode (see NMKeyfileReadTunnelMode):
+        #   0 = ipip, 1 = gre, 2 = sit, 3 = isatap, 4 = vti, 5 = vti6.
+        # For IPv6-in-IPv4 SIT (the Route64 protocol) we need mode=2.
+        # Earlier "4" was parsed as int 4 = isatap, "sit" was rejected
+        # as not-an-integer.
+        mode = 2;
+        local = cfg.clientIPv4;
+        remote = cfg.serverIPv4;
+        ttl = 255;
+        # Parent device: NM needs an explicit binding for ip-tunnel
+        # profiles because it can't infer one. Default = wlp58s0
+        # (override via networking.route64-tunnel.parentDevice). This
+        # key lives in the [ip-tunnel] section, not [connection] —
+        # see https://networkmanager.dev/docs/api/1.52.0/settings-ip-tunnel.html
+        parent = cfg.parentDevice;
+      };
+      ipv6 = {
+        method = "manual";
+        addresses = "${cfg.clientIPv6}/64";
+        gateway = cfg.serverIPv6;
+      };
+      ipv4 = {
+        method = "disabled";
+      };
     };
 
     # Heartbeat: re-assert our current v4 to Route64 every 5 min so the

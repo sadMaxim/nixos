@@ -15,10 +15,10 @@
         ../configuration.nix
         ./home.nix
         ./hostname-maps.nix
+        ./ipv6-prefer.nix
         ./amneziawg-vdsina
         ./throne
         ./sing-box
-        ./route64-tunnel.nix
       ];
     };
   };
