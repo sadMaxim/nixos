@@ -214,28 +214,6 @@
   # per-user config can be loaded from ~/.config/sing-box/.
   services.sing-box-upstream.enable = true;
 
-  # Route64.org SIT tunnel → Stockholm POP → gives the laptop a global
-  # IPv6 address. Used to reach v6-only hosts (Timeweb 2a03:6f00:a::2:b58c)
-  # and to bypass Russian DPI for v6-capable services (the Russian ISP
-  # sees only IP proto 41 to Route64, never the inner v6 traffic).
-  # Module lives at modules/route64-tunnel.nix; status command is
-  # `route64-status`. Heartbeat (route64-heartbeat.timer) keeps Route64's
-  # view of our v4 fresh every 5 min — survives ISP rotations.
-  # The API key is NOT inlined — it's read at runtime via systemd
-  # LoadCredential from /home/maxim/secrets/ROUTE64 (out of repo), so
-  # nothing sensitive ends up in any committed nix file.
-  networking.route64-tunnel = {
-    enable = true;
-    serverIPv4 = "192.67.33.15";
-    serverIPv6 = "2a11:6c7:f30:2f::1";
-    clientIPv6 = "2a11:6c7:f30:2f::2";
-    routedPrefix = "2a11:6c7:f30:2f::/64";
-    clientIPv4 = "188.34.206.97";
-    tunnelId = "34263";
-    # apiKeyFile defaults to /home/maxim/secrets/ROUTE64
-    apiKeyFile = "/home/maxim/secrets/ROUTE64";
-  };
-
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 

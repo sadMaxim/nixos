@@ -5,6 +5,58 @@ let
   # All agents from llm-agents.nix
   agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
+  # The OpenAI Codex subscription backend is served from chatgpt.com. Bun's
+  # compiled fetch currently selects IPv4 even when IPv6 is preferred through
+  # NODE_OPTIONS, so constrain this hostname at the libc resolver instead.
+  # Other hosts used by Pi remain dual-stack.
+  piIpv6ResolverSource = pkgs.writeText "pi-ipv6-chatgpt.c" ''
+    #define _GNU_SOURCE
+    #include <dlfcn.h>
+    #include <netdb.h>
+    #include <string.h>
+
+    typedef int (*getaddrinfo_fn)(const char *, const char *,
+                                 const struct addrinfo *, struct addrinfo **);
+
+    int getaddrinfo(const char *node, const char *service,
+                    const struct addrinfo *hints, struct addrinfo **result) {
+      static getaddrinfo_fn real_getaddrinfo;
+      struct addrinfo ipv6_hints;
+
+      if (!real_getaddrinfo)
+        real_getaddrinfo = (getaddrinfo_fn)dlsym(RTLD_NEXT, "getaddrinfo");
+
+      if (node && strcmp(node, "chatgpt.com") == 0) {
+        if (hints)
+          ipv6_hints = *hints;
+        else
+          memset(&ipv6_hints, 0, sizeof(ipv6_hints));
+        ipv6_hints.ai_family = AF_INET6;
+        return real_getaddrinfo(node, service, &ipv6_hints, result);
+      }
+
+      return real_getaddrinfo(node, service, hints, result);
+    }
+  '';
+
+  piIpv6Resolver = pkgs.runCommand "pi-ipv6-chatgpt" {
+    nativeBuildInputs = [ pkgs.stdenv.cc ];
+  } ''
+    mkdir -p $out/lib
+    $CC -shared -fPIC -O2 \
+      -o $out/lib/ipv6-chatgpt.so ${piIpv6ResolverSource} -ldl
+  '';
+
+  piIpv6 = pkgs.symlinkJoin {
+    name = "pi-ipv6";
+    paths = [ agents.pi ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/pi \
+        --prefix LD_PRELOAD : ${piIpv6Resolver}/lib/ipv6-chatgpt.so
+    '';
+  };
+
   mmxVersion = "1.0.16";
   mmxCli = pkgs.stdenv.mkDerivation {
     pname = "mmx-cli";
@@ -33,7 +85,7 @@ in
     mmxCli
 
     # Coding agents from llm-agents.nix
-    agents.pi          # Pi coding agent
+    piIpv6             # Pi coding agent (chatgpt.com forced over IPv6)
     agents.claude-code # Anthropic Claude Code
     agents.codex       # OpenAI Codex
     agents.opencode    # OpenCode
