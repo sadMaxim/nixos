@@ -588,8 +588,7 @@
       neonctl
       # Privacy-focused web browser
       brave
-     # Desktop Telegram client
-     telegram-desktop
+
      # LibreOffice office suite — Writer (Word .docx/.doc), Calc (Excel),
      # Impress (PowerPoint).  Pulled from stable nixpkgs; `libreoffice-fresh`
      # exists in unstable but tracks the rolling release.
@@ -679,12 +678,7 @@
         enable = true;
         nix-direnv.enable = true;
       };
-      vscode = {
-        enable = true;
-        profiles.default.extensions = with pkgs.vscode-extensions; [
-          saoudrizwan.claude-dev
-        ];
-      };
+
       # git
       git = {
        enable = true;

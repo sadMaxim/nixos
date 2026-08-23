@@ -4,7 +4,7 @@
     enable = true;
     systemd = {
       enable = true;
-      target = "hyprland-session.target";
+      targets = [ "hyprland-session.target" ];
     };
   };
   xdg.configFile."waybar/scripts/ddcutil-brightness" = {

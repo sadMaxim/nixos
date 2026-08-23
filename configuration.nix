@@ -102,7 +102,7 @@
   users.users.maxim = {
     isNormalUser = true;
     description = "maxim";
-    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" "video" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "postgres" "adbusers" "video" "docker" "steam" ];
     packages = with pkgs; [
     #  thunderbird
     pavucontrol
