@@ -2,8 +2,14 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
+let
+  unstable = import inputs.nixpkgs-unstable {
+    system = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfree = true;
+  };
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -38,6 +44,23 @@
     enable = true;
     # Prevent periodic Wi-Fi power-save stalls from dropping Moonlight UDP frames.
     wifi.powersave = false;
+    # Prefer wired networking; restore Wi-Fi when the last wired link goes down.
+    dispatcherScripts = [{
+      source = pkgs.writeShellScript "wifi-on-wired-disconnect" ''
+        case "$2" in
+          up|down) ;;
+          *) exit 0 ;;
+        esac
+
+        # Inspect all devices: VPNs and bridges must not count as Ethernet.
+        if ${pkgs.networkmanager}/bin/nmcli -t -f TYPE,STATE device status \
+          | ${pkgs.gnugrep}/bin/grep -qx 'ethernet:connected'; then
+          ${pkgs.networkmanager}/bin/nmcli radio wifi off
+        else
+          ${pkgs.networkmanager}/bin/nmcli radio wifi on
+        fi
+      '';
+    }];
   };
 
 
@@ -123,6 +146,7 @@
   # errors: `sudo usermod -aG steam $USER`, then log out and back in.
   programs.steam = {
     enable = true;
+    package = unstable.steam;
     # Open the firewall ports Steam Remote Play needs if you ever stream
     # from another machine.  Comment out if you don't use Remote Play.
     remotePlay.openFirewall = true;
@@ -233,8 +257,8 @@
 
   programs.hyprland = {
     enable = true;
-    # Set to true if you need X11 apps via Xwayland.
-    xwayland.enable = false;
+    # Steam still requires X11, so provide it through Hyprland's Xwayland server.
+    xwayland.enable = true;
   };
   services.greetd = {
     enable = true;
@@ -332,6 +356,7 @@
       substituters = [
         "https://cache.nixos.org/"
         "https://nix-community.cachix.org"
+        "https://cache.numtide.com"
         # "https://nix-gaming.cachix.org"
         "https://hyprland.cachix.org"
         # "https://ghostty.cachix.org"
@@ -339,6 +364,7 @@
       ];
       trusted-public-keys = [
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
         # "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
         # "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="

@@ -588,6 +588,8 @@
       neonctl
       # Privacy-focused web browser
       brave
+      # Telegram desktop client
+      telegram-desktop
 
      # LibreOffice office suite — Writer (Word .docx/.doc), Calc (Excel),
      # Impress (PowerPoint).  Pulled from stable nixpkgs; `libreoffice-fresh`
@@ -643,6 +645,23 @@
      gsrToggle
      gsrSaveReplay
     ];
+
+   # Wofi can fail to launch desktop entries that request D-Bus activation.
+   # Override Telegram's entry so the app menu executes it directly instead.
+   xdg.desktopEntries."org.telegram.desktop" = {
+     name = "Telegram";
+     comment = "New era of messaging";
+     exec = "${pkgs.telegram-desktop}/bin/Telegram -- %U";
+     icon = "org.telegram.desktop";
+     terminal = false;
+     categories = [ "Chat" "Network" "InstantMessaging" "Qt" ];
+     mimeType = [ "x-scheme-handler/tg" "x-scheme-handler/tonsite" ];
+     settings = {
+       DBusActivatable = "false";
+       StartupWMClass = "TelegramDesktop";
+       Keywords = "tg;chat;im;messaging;messenger;sms;tdesktop;";
+     };
+   };
 
    imports = [ 
      ./hyprland.nix

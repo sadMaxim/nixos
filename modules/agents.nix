@@ -5,46 +5,39 @@ let
   # All agents from llm-agents.nix
   agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 
-  # The OpenAI Codex subscription backend is served from chatgpt.com. Bun's
-  # compiled fetch currently selects IPv4 even when IPv6 is preferred through
-  # NODE_OPTIONS, so constrain this hostname at the libc resolver instead.
-  # Other hosts used by Pi remain dual-stack.
-  piIpv6ResolverSource = pkgs.writeText "pi-ipv6-chatgpt.c" ''
+  # Pi runs as a dynamically linked Bun executable. Intercept connect(2) so
+  # IPv4 fallback connections are rejected while IPv6 and local Unix sockets
+  # continue to work normally.
+  piIpv6OnlySource = pkgs.writeText "pi-ipv6-only.c" ''
     #define _GNU_SOURCE
     #include <dlfcn.h>
-    #include <netdb.h>
-    #include <string.h>
+    #include <errno.h>
+    #include <sys/socket.h>
 
-    typedef int (*getaddrinfo_fn)(const char *, const char *,
-                                 const struct addrinfo *, struct addrinfo **);
+    typedef int (*connect_fn)(int, const struct sockaddr *, socklen_t);
 
-    int getaddrinfo(const char *node, const char *service,
-                    const struct addrinfo *hints, struct addrinfo **result) {
-      static getaddrinfo_fn real_getaddrinfo;
-      struct addrinfo ipv6_hints;
+    int connect(int socket, const struct sockaddr *address,
+                socklen_t address_len) {
+      static connect_fn real_connect;
 
-      if (!real_getaddrinfo)
-        real_getaddrinfo = (getaddrinfo_fn)dlsym(RTLD_NEXT, "getaddrinfo");
-
-      if (node && strcmp(node, "chatgpt.com") == 0) {
-        if (hints)
-          ipv6_hints = *hints;
-        else
-          memset(&ipv6_hints, 0, sizeof(ipv6_hints));
-        ipv6_hints.ai_family = AF_INET6;
-        return real_getaddrinfo(node, service, &ipv6_hints, result);
+      if (address && address->sa_family == AF_INET) {
+        errno = ENETUNREACH;
+        return -1;
       }
 
-      return real_getaddrinfo(node, service, hints, result);
+      if (!real_connect)
+        real_connect = (connect_fn)dlsym(RTLD_NEXT, "connect");
+
+      return real_connect(socket, address, address_len);
     }
   '';
 
-  piIpv6Resolver = pkgs.runCommand "pi-ipv6-chatgpt" {
+  piIpv6Only = pkgs.runCommand "pi-ipv6-only" {
     nativeBuildInputs = [ pkgs.stdenv.cc ];
   } ''
     mkdir -p $out/lib
     $CC -shared -fPIC -O2 \
-      -o $out/lib/ipv6-chatgpt.so ${piIpv6ResolverSource} -ldl
+      -o $out/lib/ipv6-only.so ${piIpv6OnlySource} -ldl
   '';
 
   piIpv6 = pkgs.symlinkJoin {
@@ -53,17 +46,18 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
-        --prefix LD_PRELOAD : ${piIpv6Resolver}/lib/ipv6-chatgpt.so
+        --set NODE_OPTIONS --dns-result-order=ipv6first \
+        --prefix LD_PRELOAD : ${piIpv6Only}/lib/ipv6-only.so
     '';
   };
 
-  mmxVersion = "1.0.16";
+  mmxVersion = "1.0.22";
   mmxCli = pkgs.stdenv.mkDerivation {
     pname = "mmx-cli";
     version = mmxVersion;
     src = pkgs.fetchurl {
       url = "https://registry.npmjs.org/mmx-cli/-/mmx-cli-${mmxVersion}.tgz";
-      sha256 = "sha256-GYu2D7ogus7bYLaAJy5dr/2HDx81a94oBN/n5BLint0=";
+      sha256 = "sha256-I3dwo0Xp0J5XvvUUAtMPRU8iD0epEMkGMMJ7YzrJv2Y=";
     };
     nativeBuildInputs = [ pkgs.bun ];
     dontBuild = true;
@@ -85,7 +79,7 @@ in
     mmxCli
 
     # Coding agents from llm-agents.nix
-    piIpv6             # Pi coding agent (chatgpt.com forced over IPv6)
+    piIpv6             # Pi coding agent (IPv4 connections prohibited)
     agents.claude-code # Anthropic Claude Code
     agents.codex       # OpenAI Codex
     agents.opencode    # OpenCode

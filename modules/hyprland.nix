@@ -147,8 +147,6 @@
           "XCURSOR_THEME,rose-pine-hyprcursor"
           "XCURSOR_SIZE,34"
           "NIXOS_OZONE_WL,1"
-          # Disable Xwayland entirely for a Wayland-only session.
-          "WLR_NO_XWAYLAND,1"
           # Prepend the Home Manager user profile bin to PATH so that binds of
           # the form `, KEY, exec, gsr-toggle` (HM-only shell wrappers) can find
           # their binary. Without this, Hyprland's exec PATH is just
@@ -160,9 +158,9 @@
           "PATH,$PATH:/etc/profiles/per-user/maxim/bin"
         ];
 
-        # Explicitly keep Hyprland from spawning Xwayland.
+        # Steam requires X11; run it through Hyprland's Xwayland compatibility server.
         xwayland = {
-          enabled = false;
+          enabled = true;
         };
         
         # i3-style keybindings
@@ -271,6 +269,7 @@
           follow_mouse = 1;
           repeat_delay = 150;
           repeat_rate = 50;
+          sensitivity = -0.5;
         };
         
         # Autostart
