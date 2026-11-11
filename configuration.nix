@@ -11,10 +11,11 @@ let
   };
 in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  # This configuration is shared by every host of this flake: it contains
+  # no hardware specific settings.  The hardware configuration (disks,
+  # LUKS devices, CPU microcode), the state version and the host specific
+  # graphics settings live in the host modules under hosts/ — see
+  # hosts/old-host and hosts/new-laptop.
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -31,7 +32,8 @@ in
     "net.core.netdev_max_backlog" = 5000;
   };
 
-  boot.initrd.luks.devices."luks-67f943c7-079c-472e-9335-0d315c671c40".device = "/dev/disk/by-uuid/67f943c7-079c-472e-9335-0d315c671c40";
+  # The encrypted swap container is host specific and is declared in the
+  # host modules (hosts/old-host, hosts/new-laptop).
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -247,13 +249,9 @@ in
   # Or disable the firewall altogether.
   networking.firewall.enable = true;
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "25.05"; # Did you read the comment?
+  # system.stateVersion is host specific: it is set in the host modules
+  # (hosts/old-host, hosts/new-laptop) so that the shared configuration
+  # stays free of conflicting definitions.
 
   programs.hyprland = {
     enable = true;
@@ -267,12 +265,9 @@ in
       user = "greeter";
     };
   };
-  hardware.graphics = {
-    enable = true;
-    # Kaby Lake Iris Plus 640: hardware H.264/HEVC decoding for Moonlight.
-    extraPackages = with pkgs; [ intel-media-driver ];
-  };
-  environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
+  hardware.graphics.enable = true;
+  # The VA-API driver is host specific (Intel on the old host, mesa on the
+  # new laptop) and is set in the host modules.
 
   services.udisks2.enable = true;
   services.gvfs.enable = true;  # good for Dolphin/Thunar/PCManFM, etc.
@@ -327,6 +322,7 @@ in
     };
   };
   services.blueman.enable = true;
+
 
 
 
