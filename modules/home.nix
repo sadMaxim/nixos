@@ -1,12 +1,17 @@
-{ config, lib, pkgs, inputs, home-manager, nixpkgs-unstable, ... }:
+# `lightweight` selects the trimmed-down profile: the same setup without the
+# nixvim and llm-agents packages.  It is a special argument, set by
+# modules/default.nix (false for `nixos`, true for `nixos-lightweight`).
+{ config, lib, pkgs, inputs, home-manager, nixpkgs-unstable, lightweight ? false, ... }:
 {
   imports = [ home-manager.nixosModules.home-manager ];
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "hm-backup";
-  home-manager.extraSpecialArgs = { inherit nixpkgs-unstable inputs; };
+  # The Home Manager user module is a separate module system, so the flag
+  # has to be forwarded explicitly.
+  home-manager.extraSpecialArgs = { inherit nixpkgs-unstable inputs lightweight; };
   
-  home-manager.users.maxim = { pkgs, nixpkgs-unstable, inputs, ... }:
+  home-manager.users.maxim = { pkgs, nixpkgs-unstable, inputs, lightweight, ... }:
   let
     unstable = nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
     pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
@@ -663,14 +668,18 @@
      };
    };
 
-   imports = [ 
+   imports = [
      ./hyprland.nix
      ./kitty.nix
      ./waybar
      ./tmux.nix
      ./programming.nix
+   ] ++ lib.optionals (!lightweight) [
+     # The AI coding CLIs (claude-code, codex, opencode, pi, mcode) and the
+     # Neovim configuration.  In the lightweight profile neither module is
+     # imported, so neither is ever evaluated.
      ./agents.nix
-      inputs.nixvim.homeModules.nixvim 
+     inputs.nixvim.homeModules.nixvim
    ];
    
 
@@ -706,12 +715,6 @@
        settings.credential.helper = "store";
       };
 
-      nixvim = (import ./nixvim {inherit pkgs;}) // {
-        defaultEditor = true;
-        nixpkgs.useGlobalPackages = true;
-        enable = true;
-      };
-
       fzf = {
         enable = true;
         enableBashIntegration = true;
@@ -724,6 +727,16 @@
         enableBashIntegration = true;
       };
 
+    } // lib.optionalAttrs (!lightweight) {
+      # Neovim configuration: the local module provides the setup, the
+      # nixvim home module (imported above) provides the options used here.
+      # In the lightweight profile those options do not exist at all, so the
+      # whole block is omitted.
+      nixvim = (import ./nixvim {inherit pkgs;}) // {
+        defaultEditor = true;
+        nixpkgs.useGlobalPackages = true;
+        enable = true;
+      };
     };
 
     # Television cable channel for tmux sessions.  Lets `tv sesh` open the
