@@ -11,7 +11,25 @@
 #
 # The shared `configuration.nix` is hardware agnostic, so the same module
 # list can be used for every host of this flake.
-{ config, lib, pkgs, lightweight ? false, ... }:
+{ config, lib, pkgs, inputs, lightweight ? false, ... }:
+let
+  # The shared Neovim configuration.  It is imported here (and not read from
+  # `config`, which would be a recursive reference) so that the completion
+  # providers can be filtered without copying the whole configuration.
+  sharedNixvim = import ../../modules/nixvim/cmp.nix;
+
+  # Tabnine and Codeium are not used on this ThinkPad: their completion
+  # sources are dropped, every other provider (nvim_lsp, luasnip, buffer,
+  # nvim_lua, path) stays untouched.
+  cmpSources = lib.filter (s: !(s.name == "codeium" || s.name == "cmp_tabnine"))
+    sharedNixvim.plugins.cmp.settings.sources;
+
+  # The icon table of the shared configuration maps the kinds of the removed
+  # providers as well; those two entries are dropped with them.
+  cmpFormat = lib.concatStringsSep "\n" (lib.filter
+    (line: !(lib.hasInfix "Codeium" line || lib.hasInfix "TabNine" line))
+    (lib.splitString "\n" sharedNixvim.plugins.cmp.settings.formatting.format));
+in
 {
   # Include the results of the hardware scan of this host.
   imports =
@@ -42,6 +60,22 @@
     enable = true;
     openFirewall = lib.mkForce true;
     settings.PasswordAuthentication = lib.mkForce true;
+  };
+
+  # The lightweight profile of this host installs the complete llm-agents
+  # package set of modules/agents.nix (Pi with the IPv6-only wrapper,
+  # Claude Code, Codex, OpenCode and mmx) — see the `allAgents` switch in
+  # modules/default.nix.  The plain upstream `pi` package is deliberately
+  # not added here: it would collide with the wrapped `pi` of that module.
+
+  home-manager.users.maxim = lib.optionalAttrs (!lightweight) {
+    programs.nixvim = {
+      plugins.cmp-tabnine.enable = lib.mkForce false;
+      plugins.codeium-nvim.enable = lib.mkForce false;
+      plugins.codeium-vim.enable = lib.mkForce false;
+      plugins.cmp.settings.sources = lib.mkForce cmpSources;
+      plugins.cmp.settings.formatting.format = lib.mkForce cmpFormat;
+    };
   };
 
   # AMD graphics: mesa ships the radeonsi VA-API driver.  The Intel

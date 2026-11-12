@@ -17,9 +17,12 @@
       # (hardware configuration, LUKS devices, state version, graphics
       # driver, ...), the profile is handed to the modules through the
       # `lightweight` special argument.
-      mkSystem = hostModule: lightweight: inputs.nixpkgs.lib.nixosSystem {
+      # `allAgents` is a host specific switch: it installs the llm-agents
+      # packages (modules/agents.nix) even in the lightweight profile, while
+      # the nixvim configuration stays excluded.
+      mkSystem = hostModule: lightweight: allAgents: inputs.nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = inputs // { inherit inputs lightweight; };
+        specialArgs = inputs // { inherit inputs lightweight allAgents; };
         modules = [
           { nixpkgs.config.allowUnfree = true; }
           ../configuration.nix
@@ -35,11 +38,12 @@
     in
     {
       # Old host (Intel) — the machine this flake was written for.
-      nixos = mkSystem ../hosts/old-host false;
-      nixos-lightweight = mkSystem ../hosts/old-host true;
-      # New laptop (AMD).
-      nixos-new-laptop = mkSystem ../hosts/new-laptop false;
-      nixos-new-laptop-lightweight = mkSystem ../hosts/new-laptop true;
+      nixos = mkSystem ../hosts/old-host false false;
+      nixos-lightweight = mkSystem ../hosts/old-host true false;
+      # New laptop (AMD).  Its lightweight profile installs the whole
+      # llm-agents package set (no nixvim).
+      nixos-new-laptop = mkSystem ../hosts/new-laptop false false;
+      nixos-new-laptop-lightweight = mkSystem ../hosts/new-laptop true true;
     };
 
   perSystem = { system, pkgs, self', inputs', ... }:

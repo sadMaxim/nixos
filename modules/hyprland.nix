@@ -22,10 +22,12 @@
     ###hyprpaper
     services.hyprpaper =
     let
-      wallpaper = pkgs.fetchurl {
-        url = "https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg";
-        # Run once with fake hash to get the correct one
-        sha256 = "sha256-2S9foYfeuFQOPA+Nqkk7Zvlcz+P9mOBzUQ+I4+kLeAc=";
+      # Wallpaper shipped in this repository (repo root). The previous
+      # pkgs.fetchurl of the Pexels photo returned HTTP 404, so the asset is
+      # taken from the checkout and copied into the Nix store instead.
+      wallpaper = builtins.path {
+        path = ../beautifulmountainscape.jpg;
+        name = "beautifulmountainscape.jpg";
       };
     in {
       enable = true;

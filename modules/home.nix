@@ -1,7 +1,12 @@
 # `lightweight` selects the trimmed-down profile: the same setup without the
 # nixvim and llm-agents packages.  It is a special argument, set by
 # modules/default.nix (false for `nixos`, true for `nixos-lightweight`).
-{ config, lib, pkgs, inputs, home-manager, nixpkgs-unstable, lightweight ? false, ... }:
+#
+# `allAgents` is a host specific override: when it is true the llm-agents
+# packages (modules/agents.nix) are installed even in the lightweight
+# profile, while nixvim stays excluded.  It is set for the lightweight
+# profile of the new laptop.
+{ config, lib, pkgs, inputs, home-manager, nixpkgs-unstable, lightweight ? false, allAgents ? false, ... }:
 {
   imports = [ home-manager.nixosModules.home-manager ];
   home-manager.useGlobalPkgs = true;
@@ -9,9 +14,9 @@
   home-manager.backupFileExtension = "hm-backup";
   # The Home Manager user module is a separate module system, so the flag
   # has to be forwarded explicitly.
-  home-manager.extraSpecialArgs = { inherit nixpkgs-unstable inputs lightweight; };
+  home-manager.extraSpecialArgs = { inherit nixpkgs-unstable inputs lightweight allAgents; };
   
-  home-manager.users.maxim = { pkgs, nixpkgs-unstable, inputs, lightweight, ... }:
+  home-manager.users.maxim = { pkgs, nixpkgs-unstable, inputs, lightweight, allAgents, ... }:
   let
     unstable = nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
     pgwebWrapped = pkgs.writeShellScriptBin "pgweb" ''
@@ -674,11 +679,16 @@
      ./waybar
      ./tmux.nix
      ./programming.nix
-   ] ++ lib.optionals (!lightweight) [
-     # The AI coding CLIs (claude-code, codex, opencode, pi, mcode) and the
-     # Neovim configuration.  In the lightweight profile neither module is
-     # imported, so neither is ever evaluated.
+   ]
+   # The AI coding CLIs (claude-code, codex, opencode, pi, mmx) are installed
+   # in the full profile and, when the host asks for `allAgents`, also in the
+   # lightweight profile.
+   ++ lib.optionals (!lightweight || allAgents) [
      ./agents.nix
+   ]
+   # The Neovim configuration stays exclusive to the full profile: in a
+   # lightweight profile the nixvim options are never even evaluated.
+   ++ lib.optionals (!lightweight) [
      inputs.nixvim.homeModules.nixvim
    ];
    
